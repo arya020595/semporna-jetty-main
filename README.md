@@ -22,12 +22,4 @@ The project follows a typical Laravel application structure with additional fold
 
 ## Getting Started
 
-To get started with this project, follow these steps:
-
-1. Clone the repository: `git clone git@gitlab.com:easycode.id/datablu/semporna-jetty.git`
-2. Install dependencies: `composer install && npm install`
-3. Copy the `.env.example` file to `.env` and update the database credentials.
-4. Generate an application key: `php artisan key:generate`
-5. Migrate the database: `php artisan migrate`
-6. Seed the database: `php artisan db:seed`
-7. Run the development server: `php artisan serve` and `npm run watch`
+See [SETUP.md](SETUP.md) for the full, verified setup guide (Docker-based, recommended) including troubleshooting for common issues.

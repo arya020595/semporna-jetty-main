@@ -30,6 +30,7 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd
 RUN docker-php-ext-install mbstring exif pcntl bcmath
 RUN docker-php-ext-install zip
+RUN docker-php-ext-install pdo_mysql mysqli
 RUN docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 # Get latest Composer
