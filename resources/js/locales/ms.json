@@ -1,0 +1,96 @@
+{
+    "message": {
+        "hello": "halo dunia"
+    },
+    "public": {
+        "page": {
+            "survey": {
+                "button": {
+                    "next": "Seterusnya",
+                    "finish": "Selesai"
+                },
+                "swal": {
+                    "title": "Adakah anda mahu menyimpan perubahan ini?",
+                    "submit": "Hantar Jawapan",
+                    "cancel": "Batal"
+                },
+                "tab_dvs": {
+                    "demographic": "Butiran Demografi",
+                    "travel": "Butiran Perjalanan",
+                    "entry_point": "Butiran Tempat Masuk",
+                    "air_entry_point": "Butiran Tempat Masuk (Udara)",
+                    "travel_arrangement": "Butiran Pengaturan Perjalanan",
+                    "expense": "Butiran Pengaturan Sendiri, Pakej Pelancongan & Perbelanjaan Perjalanan",
+                    "vacation": "Butiran Percutian/Vakasi",
+                    "feedbacks": "Komen atau Maklum Balas"
+                },
+                "tab_sos": {
+                    "demographic": "Butiran Demografi",
+                    "travel": "Butiran Perjalanan",
+                    "expense": "Butiran Perbelanjaan Perjalanan",
+                    "air_entry_point": "Butiran Titik Masuk Melalui Udara"
+                },
+                "dvs": {
+                    "expense_category": "Apakah anggaran kasar perbelanjaan anda untuk kategori ini? (termasuk pakej lawatan/yang diatur sendiri)"
+                }
+            },
+            "survey_thanks": {
+                "title": "Terima Kasih"
+            }
+        }
+    },
+    "plugins": {
+        "intus": {
+            "messages": {
+                "isAccepted": ":attribute mesti diterima.",
+                "isAcceptedIf": ":attribute mesti diterima jika :other adalah :otherValue.",
+                "isAfter": ":attribute mesti tarikh selepas :otherValue.",
+                "isAfterOrEqual": ":attribute mesti tarikh selepas atau sama dengan :otherValue.",
+                "isArray": ":attribute mesti array yang sah.",
+                "isBefore": ":attribute mesti tarikh sebelum :otherValue.",
+                "isBeforeOrEqual": ":attribute mesti tarikh sebelum atau sama dengan :otherValue.",
+                "isBetween": ":attribute mesti antara atau sama dengan :min dan :max.",
+                "isBoolean": ":attribute mesti boolean.",
+                "isDate": ":attribute mesti tarikh yang sah.",
+                "isDistinct": ":attribute mesti berbeza.",
+                "isEmail": ":attribute mesti emel yang sah.",
+                "isExtension": ":attribute mesti fail jenis :extensions.",
+                "isGt": ":attribute mesti lebih besar daripada :otherValue.",
+                "isGte": ":attribute mesti lebih besar atau sama dengan :otherValue.",
+                "isImage": ":attribute mesti imej.",
+                "isIn": ":attribute mesti salah satu daripada :options.",
+                "isInteger": ":attribute mesti integer.",
+                "isIp": ":attribute mesti alamat IP yang sah.",
+                "isJSON": ":attribute mesti JSON yang sah.",
+                "isLt": ":attribute mesti kurang daripada :otherValue.",
+                "isLte": ":attribute mesti kurang atau sama dengan :otherValue.",
+                "isMax": ":attribute mesti paling banyak :max.",
+                "isMax.string": ":attribute mesti paling banyak :max aksara.",
+                "isMax.array": ":attribute mesti mempunyai paling banyak :max item.",
+                "isMax.file": ":attribute mesti paling banyak :maxMB.",
+                "isMime": ":attribute mesti fail jenis :mimes.",
+                "isMin": ":attribute mesti sekurang-kurangnya :min.",
+                "isMin.string": ":attribute mesti sekurang-kurangnya :min aksara.",
+                "isMin.array": ":attribute mesti sekurang-kurangnya :min item.",
+                "isMin.file": ":attribute mesti sekurang-kurangnya :minMB.",
+                "isNotIn": ":attribute tidak boleh salah satu daripada :options.",
+                "isNotRegex": ":attribute tidak boleh memadankan regex :regex.",
+                "isNumeric": ":attribute mesti nombor.",
+                "isRegex": ":attribute mesti memadankan regex :regex.",
+                "isRequired": ":attribute diperlukan.",
+                "isRequiredIf": ":attribute diperlukan jika :other adalah :otherValue.",
+                "isRequiredIfAccepted": ":attribute diperlukan jika :other diterima.",
+                "isRequiredUnless": ":attribute diperlukan melainkan :other adalah :otherValue.",
+                "isRequiredWith": ":attribute diperlukan apabila :others ada.",
+                "isRequiredWithAll": ":attribute diperlukan apabila :others ada.",
+                "isRequiredWithout": ":attribute diperlukan apabila :others tiada.",
+                "isRequiredWithoutAll": ":attribute diperlukan apabila :others tiada.",
+                "isSame": ":attribute mesti sama dengan :other.",
+                "isUrl": ":attribute mesti URL yang sah."
+            }
+        },
+        "vue_multiselect": {
+            "placeholder" : "Pilih pilihan"
+        }
+    }
+}

@@ -1,0 +1,96 @@
+{
+    "message": {
+        "hello": "你好，世界"
+    },
+    "public": {
+        "page": {
+            "survey": {
+                "button": {
+                    "next": "下一步",
+                    "finish": "完成"
+                },
+                "swal": {
+                    "title": "您要保存更改吗",
+                    "submit": "提交答案",
+                    "cancel": "取消"
+                },
+                "tab_dvs": {
+                    "demographic": "人口统计详情",
+                    "travel": "旅行详情",
+                    "entry_point": "入境点详情",
+                    "air_entry_point": "航空入境点详情",
+                    "travel_arrangement": "旅行安排详情",
+                    "expense": "自助游、跟团游及旅行费用详情",
+                    "vacation": "假期/度假详情",
+                    "feedbacks": "评论或反馈"
+                },
+                "tab_sos": {
+                    "demographic": "人口统计详情",
+                    "travel": "旅行详情",
+                    "expense": "旅行费用详情",
+                    "air_entry_point": "航空入境点详情"
+                },
+                "dvs": {
+                    "expense_category": "您对这些类别的费用有大致的估算吗? (包括跟团游或自行规划)"
+                }
+            },
+            "survey_thanks": {
+                "title": "谢谢"
+            }
+        }
+    },
+    "plugins": {
+        "intus": {
+            "messages": {
+                "isAccepted": ":attribute 必须被接受。",
+                "isAcceptedIf": "当 :other 是 :otherValue 时，:attribute 必须被接受。",
+                "isAfter": ":attribute 必须是晚于 :otherValue 的日期。",
+                "isAfterOrEqual": ":attribute 必须是等于或晚于 :otherValue 的日期。",
+                "isArray": ":attribute 必须是一个数组。",
+                "isBefore": ":attribute 必须是早于 :otherValue 的日期。",
+                "isBeforeOrEqual": ":attribute 必须是等于或早于 :otherValue 的日期。",
+                "isBetween": ":attribute 必须介于 :min 和 :max 之间。",
+                "isBoolean": ":attribute 必须是布尔值。",
+                "isDate": ":attribute 必须是一个有效的日期。",
+                "isDistinct": ":attribute 必须是唯一的。",
+                "isEmail": ":attribute 必须是一个有效的电子邮件地址。",
+                "isExtension": ":attribute 必须是类型为 :extensions 的文件。",
+                "isGt": ":attribute 必须大于 :otherValue。",
+                "isGte": ":attribute 必须大于或等于 :otherValue。",
+                "isImage": ":attribute 必须是一张图片。",
+                "isIn": ":attribute 必须是 :options 中的一项。",
+                "isInteger": ":attribute 必须是整数。",
+                "isIp": ":attribute 必须是一个有效的 IP 地址。",
+                "isJSON": ":attribute 必须是一个有效的 JSON。",
+                "isLt": ":attribute 必须小于 :otherValue。",
+                "isLte": ":attribute 必须小于或等于 :otherValue。",
+                "isMax": ":attribute 最多为 :max。",
+                "isMax.string": ":attribute 最多为 :max 个字符。",
+                "isMax.array": ":attribute 最多包含 :max 项。",
+                "isMax.file": ":attribute 的大小最多为 :maxMB。",
+                "isMime": ":attribute 必须是类型为 :mimes 的文件。",
+                "isMin": ":attribute 最少为 :min。",
+                "isMin.string": ":attribute 最少为 :min 个字符。",
+                "isMin.array": ":attribute 最少包含 :min 项。",
+                "isMin.file": ":attribute 的大小最少为 :minMB。",
+                "isNotIn": ":attribute 不能是 :options 中的一项。",
+                "isNotRegex": ":attribute 不能匹配正则表达式 :regex。",
+                "isNumeric": ":attribute 必须是一个数字。",
+                "isRegex": ":attribute 必须匹配正则表达式 :regex。",
+                "isRequired": ":attribute 是必需的。",
+                "isRequiredIf": "当 :other 是 :otherValue 时，:attribute 是必需的。",
+                "isRequiredIfAccepted": "当 :other 被接受时，:attribute 是必需的。",
+                "isRequiredUnless": ":attribute 是必需的，除非 :other 是 :otherValue。",
+                "isRequiredWith": "当 :others 存在时，:attribute 是必需的。",
+                "isRequiredWithAll": "当 :others 都存在时，:attribute 是必需的。",
+                "isRequiredWithout": "当 :others 不存在时，:attribute 是必需的。",
+                "isRequiredWithoutAll": "当 :others 都不存在时，:attribute 是必需的。",
+                "isSame": ":attribute 必须与 :other 相同。",
+                "isUrl": ":attribute 必须是一个有效的 URL。"
+            }
+        },
+        "vue_multiselect": {
+            "placeholder" : "选择选项"
+        }
+    }
+}

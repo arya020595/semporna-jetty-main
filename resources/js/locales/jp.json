@@ -1,0 +1,96 @@
+{
+    "message": {
+        "hello": "こんにちは世界"
+    },
+    "public": {
+        "page": {
+            "survey": {
+                "button": {
+                    "next": "次へ",
+                    "finish": "終了"
+                },
+                "swal": {
+                    "title": "変更を保存しますか",
+                    "submit": "回答を送信",
+                    "cancel": "キャンセル"
+                },
+                "tab_dvs": {
+                    "demographic": "人口統計の詳細",
+                    "travel": "旅行の詳細",
+                    "entry_point": "入国地点の詳細",
+                    "air_entry_point": "航空入国地点の詳細",
+                    "travel_arrangement": "旅行手配の詳細",
+                    "expense": "自己手配、パッケージツアーおよび旅行費用の詳細",
+                    "vacation": "休暇/バケーションの詳細",
+                    "feedbacks": "コメントまたはフィードバック"
+                },
+                "tab_sos": {
+                    "demographic": "人口統計の詳細",
+                    "travel": "旅行の詳細",
+                    "expense": "旅行費用の詳細",
+                    "air_entry_point": "航空入国地点の詳細"
+                },
+                "dvs": {
+                    "expense_category": "以下の各項目にかかった費用の概算はいくらですか? (パッケージツアー、自己手配を含む)"
+                }
+            },
+            "survey_thanks": {
+                "title": "ありがとうございます"
+            }
+        }
+    },
+    "plugins": {
+        "intus": {
+            "messages": {
+                "isAccepted": ":attributeを受け入れる必要があります。",
+                "isAcceptedIf": ":otherが:otherValueの場合、:attributeを受け入れる必要があります。",
+                "isAfter": ":attributeは:otherValueの後の日付でなければなりません。",
+                "isAfterOrEqual": ":attributeは:otherValueの後または同じ日付でなければなりません。",
+                "isArray": ":attributeは有効な配列でなければなりません。",
+                "isBefore": ":attributeは:otherValueの前の日付でなければなりません。",
+                "isBeforeOrEqual": ":attributeは:otherValueの前または同じ日付でなければなりません。",
+                "isBetween": ":attributeは:minから:maxの間でなければなりません。",
+                "isBoolean": ":attributeはブール値でなければなりません。",
+                "isDate": ":attributeは有効な日付でなければなりません。",
+                "isDistinct": ":attributeは一意でなければなりません。",
+                "isEmail": ":attributeは有効なメールアドレスでなければなりません。",
+                "isExtension": ":attributeは:extensionsタイプのファイルでなければなりません。",
+                "isGt": ":attributeは:otherValueより大きくなければなりません。",
+                "isGte": ":attributeは:otherValue以上でなければなりません。",
+                "isImage": ":attributeは画像でなければなりません。",
+                "isIn": ":attributeは:optionsのいずれかでなければなりません。",
+                "isInteger": ":attributeは整数でなければなりません。",
+                "isIp": ":attributeは有効なIPアドレスでなければなりません。",
+                "isJSON": ":attributeは有効なJSONでなければなりません。",
+                "isLt": ":attributeは:otherValueより小さくなければなりません。",
+                "isLte": ":attributeは:otherValue以下でなければなりません。",
+                "isMax": ":attributeは最大:maxでなければなりません。",
+                "isMax.string": ":attributeは最大:max文字でなければなりません。",
+                "isMax.array": ":attributeは最大:max項目でなければなりません。",
+                "isMax.file": ":attributeは最大:maxMBでなければなりません。",
+                "isMime": ":attributeは:mimesタイプのファイルでなければなりません。",
+                "isMin": ":attributeは少なくとも:minでなければなりません。",
+                "isMin.string": ":attributeは少なくとも:min文字でなければなりません。",
+                "isMin.array": ":attributeは少なくとも:min項目でなければなりません。",
+                "isMin.file": ":attributeは少なくとも:minMBでなければなりません。",
+                "isNotIn": ":attributeは:optionsのいずれかであってはなりません。",
+                "isNotRegex": ":attributeは正規表現:regexに一致してはなりません。",
+                "isNumeric": ":attributeは数値でなければなりません。",
+                "isRegex": ":attributeは正規表現:regexに一致しなければなりません。",
+                "isRequired": ":attributeは必須です。",
+                "isRequiredIf": ":otherが:otherValueの場合、:attributeは必須です。",
+                "isRequiredIfAccepted": ":otherが受け入れられた場合、:attributeは必須です。",
+                "isRequiredUnless": ":otherが:otherValueでない限り、:attributeは必須です。",
+                "isRequiredWith": ":othersが存在する場合、:attributeは必須です。",
+                "isRequiredWithAll": ":othersが存在する場合、:attributeは必須です。",
+                "isRequiredWithout": ":othersが存在しない場合、:attributeは必須です。",
+                "isRequiredWithoutAll": ":othersが存在しない場合、:attributeは必須です。",
+                "isSame": ":attributeは:otherと同じでなければなりません。",
+                "isUrl": ":attributeは有効なURLでなければなりません。"
+            }
+        },
+        "vue_multiselect": {
+            "placeholder" : "オプションを選択"
+        }
+    }
+}

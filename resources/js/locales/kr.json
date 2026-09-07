@@ -1,0 +1,96 @@
+{
+    "message": {
+        "hello": "안녕하세요 세계"
+    },
+    "public": {
+        "page": {
+            "survey": {
+                "button": {
+                    "next": "다음",
+                    "finish": "완료"
+                },
+                "swal": {
+                    "title": "변경 사항을 저장하시겠습니까",
+                    "submit": "답변 제출",
+                    "cancel": "취소"
+                },
+                "tab_dvs": {
+                    "demographic": "인구 통계 세부 정보",
+                    "travel": "여행 세부 정보",
+                    "entry_point": "입국 지점 세부 정보",
+                    "air_entry_point": "항공 입국 지점 세부 정보",
+                    "travel_arrangement": "여행 준비 세부 정보",
+                    "expense": "자체 준비, 패키지 투어 및 여행 경비 세부 정보",
+                    "vacation": "휴가/방학 세부 정보",
+                    "feedbacks": "댓글 또는 피드백"
+                },
+                "tab_sos": {
+                    "demographic": "인구 통계 세부 정보",
+                    "travel": "여행 세부 정보",
+                    "expense": "여행 경비 세부 정보",
+                    "air_entry_point": "항공 입국 지점 세부 정보"
+                },
+                "dvs": {
+                    "expense_category": "이 카테고리들에 대한 대략적인 경비 추정치를 알려주세요. (패키지 투어 / 자체 예약 포함)"
+                }
+            },
+            "survey_thanks": {
+                "title": "감사합니다"
+            }
+        }
+    },
+    "plugins": {
+        "intus": {
+            "messages": {
+                "isAccepted": ":attribute을(를) 수락해야 합니다.",
+                "isAcceptedIf": ":other이(가) :otherValue인 경우 :attribute을(를) 수락해야 합니다.",
+                "isAfter": ":attribute은(는) :otherValue 이후의 날짜여야 합니다.",
+                "isAfterOrEqual": ":attribute은(는) :otherValue 이후 또는 같은 날짜여야 합니다.",
+                "isArray": ":attribute은(는) 유효한 배열이어야 합니다.",
+                "isBefore": ":attribute은(는) :otherValue 이전의 날짜여야 합니다.",
+                "isBeforeOrEqual": ":attribute은(는) :otherValue 이전 또는 같은 날짜여야 합니다.",
+                "isBetween": ":attribute은(는) :min에서 :max 사이여야 합니다.",
+                "isBoolean": ":attribute은(는) 불리언이어야 합니다.",
+                "isDate": ":attribute은(는) 유효한 날짜여야 합니다.",
+                "isDistinct": ":attribute은(는) 고유해야 합니다.",
+                "isEmail": ":attribute은(는) 유효한 이메일이어야 합니다.",
+                "isExtension": ":attribute은(는) :extensions 유형의 파일이어야 합니다.",
+                "isGt": ":attribute은(는) :otherValue보다 커야 합니다.",
+                "isGte": ":attribute은(는) :otherValue 이상이어야 합니다.",
+                "isImage": ":attribute은(는) 이미지여야 합니다.",
+                "isIn": ":attribute은(는) :options 중 하나여야 합니다.",
+                "isInteger": ":attribute은(는) 정수여야 합니다.",
+                "isIp": ":attribute은(는) 유효한 IP 주소여야 합니다.",
+                "isJSON": ":attribute은(는) 유효한 JSON이어야 합니다.",
+                "isLt": ":attribute은(는) :otherValue보다 작아야 합니다.",
+                "isLte": ":attribute은(는) :otherValue 이하이어야 합니다.",
+                "isMax": ":attribute은(는) 최대 :max이어야 합니다.",
+                "isMax.string": ":attribute은(는) 최대 :max자여야 합니다.",
+                "isMax.array": ":attribute은(는) 최대 :max 항목이어야 합니다.",
+                "isMax.file": ":attribute은(는) 최대 :maxMB이어야 합니다.",
+                "isMime": ":attribute은(는) :mimes 유형의 파일이어야 합니다.",
+                "isMin": ":attribute은(는) 최소 :min이어야 합니다.",
+                "isMin.string": ":attribute은(는) 최소 :min자여야 합니다.",
+                "isMin.array": ":attribute은(는) 최소 :min 항목이어야 합니다.",
+                "isMin.file": ":attribute은(는) 최소 :minMB이어야 합니다.",
+                "isNotIn": ":attribute은(는) :options 중 하나가 아니어야 합니다.",
+                "isNotRegex": ":attribute은(는) 정규 표현식 :regex와 일치하지 않아야 합니다.",
+                "isNumeric": ":attribute은(는) 숫자여야 합니다.",
+                "isRegex": ":attribute은(는) 정규 표현식 :regex와 일치해야 합니다.",
+                "isRequired": ":attribute은(는) 필수입니다.",
+                "isRequiredIf": ":other이(가) :otherValue인 경우 :attribute은(는) 필수입니다.",
+                "isRequiredIfAccepted": ":other이(가) 수락된 경우 :attribute은(는) 필수입니다.",
+                "isRequiredUnless": ":other이(가) :otherValue가 아닌 경우 :attribute은(는) 필수입니다.",
+                "isRequiredWith": ":others이(가) 있는 경우 :attribute은(는) 필수입니다.",
+                "isRequiredWithAll": ":others이(가) 있는 경우 :attribute은(는) 필수입니다.",
+                "isRequiredWithout": ":others이(가) 없는 경우 :attribute은(는) 필수입니다.",
+                "isRequiredWithoutAll": ":others이(가) 없는 경우 :attribute은(는) 필수입니다.",
+                "isSame": ":attribute은(는) :other와 같아야 합니다.",
+                "isUrl": ":attribute은(는) 유효한 URL이어야 합니다."
+            }
+        },
+        "vue_multiselect": {
+            "placeholder" : "옵션 선택"
+        }
+    }
+}

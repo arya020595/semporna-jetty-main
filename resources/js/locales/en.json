@@ -1,0 +1,96 @@
+{
+    "message": {
+      "hello": "hello world"
+    },
+    "public": {
+        "page": {
+            "survey": {
+                "button": {
+                    "next": "Next",
+                    "finish": "Finish"
+                },
+                "swal": {
+                    "title": "Do you want to save the changes",
+                    "submit": "Submit Answer",
+                    "cancel": "Cancel"
+                },
+                "tab_dvs": {
+                    "demographic": "Demographic Details",
+                    "travel": "Travel Details",
+                    "entry_point": "Entry Point Details",
+                    "air_entry_point": "By Air Entry Point Details",
+                    "travel_arrangement": "Travel Arrangement Details",
+                    "expense": "Self Arranged, Package Tour & Travel Expenses Details",
+                    "vacation": "Holiday/Vacation Details",
+                    "feedbacks": "Comments or Feedbacks"
+                },
+                "tab_sos": {
+                    "demographic": "Demographic Details",
+                    "travel": "Travel Details",
+                    "expense": "Travel Expenses Details",
+                    "air_entry_point": "By Air Entry Point Details"
+                },
+                "dvs": {
+                    "expense_category": "What are your rough estimates of expenses for these categories? (includes package tours/self-arranged)"
+                }
+            },
+            "survey_thanks": {
+                "title": "Thank You"
+            }
+        }
+    },
+    "plugins": {
+        "intus": {
+            "messages": {
+                "isAccepted": ":attribute must be accepted.",
+                "isAcceptedIf": ":attribute must be accepted if :other is :otherValue.",
+                "isAfter": ":attribute must be a date after :otherValue.",
+                "isAfterOrEqual": ":attribute must be a date after or equal to :otherValue.",
+                "isArray": ":attribute must be a valid array.",
+                "isBefore": ":attribute must be a date before :otherValue.",
+                "isBeforeOrEqual": ":attribute must be a date before or equal to :otherValue.",
+                "isBetween": ":attribute must be between or equal to :min and :max.",
+                "isBoolean": ":attribute must be a boolean.",
+                "isDate": ":attribute must be a valid date.",
+                "isDistinct": ":attribute must be distinct.",
+                "isEmail": ":attribute must be a valid email.",
+                "isExtension": ":attribute must be a file of type :extensions.",
+                "isGt": ":attribute must be greater than :otherValue.",
+                "isGte": ":attribute must be greater or equal to :otherValue.",
+                "isImage": ":attribute must be an image.",
+                "isIn": ":attribute must be one of :options.",
+                "isInteger": ":attribute must be an integer.",
+                "isIp": ":attribute must be a valid IP address.",
+                "isJSON": ":attribute must be a valid JSON.",
+                "isLt": ":attribute must be less than :otherValue.",
+                "isLte": ":attribute must be less or equal to :otherValue.",
+                "isMax": ":attribute must be at most :max.",
+                "isMax.string": ":attribute must be at most :max characters long.",
+                "isMax.array": ":attribute must have at most :max items.",
+                "isMax.file": ":attribute must be at most :maxMB.",
+                "isMime": ":attribute must be a file of type :mimes.",
+                "isMin": ":attribute must be at least :min.",
+                "isMin.string": ":attribute must be at least :min characters long.",
+                "isMin.array": ":attribute must have at least :min items.",
+                "isMin.file": ":attribute must be at least :minMB.",
+                "isNotIn": ":attribute must not be one of :options.",
+                "isNotRegex": ":attribute must not match regex :regex.",
+                "isNumeric": ":attribute must be a number.",
+                "isRegex": ":attribute must match regex :regex.",
+                "isRequired": ":attribute is required.",
+                "isRequiredIf": ":attribute is required if :other is :otherValue.",
+                "isRequiredIfAccepted": ":attribute is required if :other is accepted.",
+                "isRequiredUnless": ":attribute is required if :other is :otherValue.",
+                "isRequiredWith": ":attribute is required when :others is present.",
+                "isRequiredWithAll": ":attribute is required when :others are present.",
+                "isRequiredWithout": ":attribute is required when :others is missing.",
+                "isRequiredWithoutAll": ":attribute is required when :others are missing.",
+                "isSame": ":attribute must be the same as :other.",
+                "isUrl": ":attribute must be a valid URL."
+            }
+        },
+        "vue_multiselect": {
+            "placeholder" : "Select option"
+        }
+    }
+}
