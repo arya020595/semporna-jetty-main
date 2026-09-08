@@ -1,0 +1,80 @@
+name: Laravel Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: survey
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 7.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '7.4'
+          extensions: mbstring, exif, pcntl, bcmath, gd, zip, pdo_mysql, mysqli
+          coverage: none
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      # composer.json requires easycode/autopull from a private GitLab repo over
+      # SSH, which CI has no access to. SETUP.md already documents this package
+      # as optional for local dev ("just an auto-deploy helper, not core app
+      # logic") — this drops it from the ephemeral CI checkout only, using the
+      # same workaround SETUP.md describes for humans without GitLab access.
+      # Never committed back to the repo.
+      - name: Drop private auto-deploy dependency (unreachable from CI)
+        run: |
+          composer remove easycode/autopull --no-update
+          php -r '
+            $lock = json_decode(file_get_contents("composer.lock"), true);
+            $lock["packages"] = array_values(array_filter(
+                $lock["packages"],
+                fn ($p) => $p["name"] !== "easycode/autopull"
+            ));
+            file_put_contents(
+                "composer.lock",
+                json_encode($lock, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . "\n"
+            );
+          '
+
+      - name: Install composer dependencies
+        run: composer install --no-interaction --prefer-dist --optimize-autoloader
+
+      - name: Configure environment
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Run migrations
+        run: php artisan migrate --force
+
+      - name: Run test suite
+        run: vendor/bin/phpunit

@@ -2,10 +2,20 @@
 
 Read-only reference-data endpoints for external partner systems (currently the Semporna Jetty Resort Manifest Form). Implementation: `app/Http/Controllers/Api/External/{Destination,Activity}Controller.php`, secured by `app/Http/Middleware/VerifyExternalApiToken.php`.
 
+## Browsing the docs
+
+With the app running, open **`http://localhost:8000/docs/external-api`** for a
+live, interactive Swagger UI (browse endpoints, expand schemas, "Try it out").
+See [`SWAGGER.md`](SWAGGER.md) for how that page is wired up.
+
+`openapi.yaml` can also be pasted into [editor.swagger.io](https://editor.swagger.io)
+(or any OpenAPI viewer) if you want to browse it without the app running.
+
 ## Files in this folder
 
-- **`openapi.yaml`** — OpenAPI 3.0 contract: both endpoints, request/response shapes, auth scheme, and example payloads. Paste into [editor.swagger.io](https://editor.swagger.io) (or any OpenAPI viewer) to browse or generate client code — it's a standalone file, no server required to view it.
+- **`openapi.yaml`** — OpenAPI 3.0 contract: both endpoints, request/response shapes, auth scheme, and example payloads. This is the source of truth — the Swagger UI page above just renders this file.
 - **`postman_collection.json`** — Postman Collection v2.1 with both requests pre-built, saved 200/401 example responses, and a couple of assertion tests per request so "Run Collection" gives a pass/fail result.
+- **`SWAGGER.md`** — architecture notes for the `/docs/external-api` Swagger UI page.
 
 ## How to test against a running app
 

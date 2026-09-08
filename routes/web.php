@@ -16,6 +16,7 @@ use App\Http\Controllers\CompanyProfile\CompanyController;
 use App\Http\Controllers\CompanyProfile\Step1Controller;
 use App\Http\Controllers\CompanyProfile\Step2Controller;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Docs\ExternalApiDocsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ProfileController;
@@ -66,6 +67,13 @@ Route::get('/senangpay/return', [SenangPayController::class, 'handleReturn'])->n
 
 // Route for SenangPay's callback URL (POST request from SenangPay server)
 Route::post('/senangpay/callback', [SenangPayController::class, 'handleCallback'])->name('senangpay.callback');
+
+
+// Swagger UI for the External Partner API (docs/external-api/openapi.yaml).
+Route::group(['prefix' => 'docs/external-api', 'as' => 'docs.external-api.'], function () {
+    Route::get('/', [ExternalApiDocsController::class, 'index'])->name('index');
+    Route::get('/openapi.yaml', [ExternalApiDocsController::class, 'spec'])->name('spec');
+});
 
 
 Route::group(["middleware" => "auth"], function () {

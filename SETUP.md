@@ -63,6 +63,8 @@ docker compose exec app composer install
 ```
 
 > ⚠️ **Private package `easycode/autopull`**: `composer.json` requires this package from a private GitLab repo (`gitlab.com/easycode.id/framework/autodeploy`) over SSH. If you have SSH access to that GitLab, make sure your SSH agent is running on the host before `docker compose exec` (Docker Desktop usually forwards `SSH_AUTH_SOCK` automatically if configured; otherwise, run `composer install` directly on the host with PHP 7.4 + Composer installed, instead of inside the container). If you don't have access, this package can be skipped temporarily for local dev (remove the `"easycode/autopull": "^1.0"` line from `composer.json` and its block from `composer.lock`, then run `composer install` again) — it's just an auto-deploy helper, not core app logic. **Don't commit that change** if it's only for local use.
+>
+> CI (`.github/workflows/laravel-tests.yml`) hits this same problem — GitHub Actions has no access to that GitLab repo — and automates this exact workaround for its own ephemeral checkout.
 
 ## 4. Generate the app key & run migrations
 
