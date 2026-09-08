@@ -203,12 +203,12 @@ class CreateManifest
             }
 
             $arrValue["is_staff"] = $isStaff;
+
+            $activityIds = $arrValue['activity_ids'] ?? null;
+            unset($arrValue['activity_ids'], $arrValue['activity_names']);
+
             $guest = $manifest->guest()->create($arrValue);
-            if (!empty($arrValue['activity_ids'])) {
-                $guest->activities()->sync($arrValue['activity_ids']);
-            } else {
-                $guest->activities()->sync(null);
-            }
+            $guest->activities()->sync($activityIds ?: null);
         }
 
         return $manifest;
