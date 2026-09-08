@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\ActivityController;
 use App\Http\Controllers\Api\AppConfigController;
 use App\Http\Controllers\Api\AppVersionController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\External\ActivityController as ExternalActivityController;
+use App\Http\Controllers\Api\External\DestinationController as ExternalDestinationController;
 use App\Http\Controllers\Api\LoginOtpController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegisterController;
@@ -50,3 +52,11 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post("/activity/scan", [ActivityController::class, "scan"]);
     // });
 });
+
+// External partner API (e.g. Semporna Jetty Resort - Manifest Form), authenticated via static bearer token.
+Route::prefix('external')
+    ->middleware(['external.token'])
+    ->group(function () {
+        Route::get('/destinations', [ExternalDestinationController::class, 'index']);
+        Route::get('/activities', [ExternalActivityController::class, 'index']);
+    });
