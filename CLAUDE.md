@@ -51,7 +51,7 @@ actual routes, so the rule above still relies on you.
 
 `composer.json` requires `easycode/autopull` from a private GitLab repo over
 SSH (`gitlab.com/easycode.id/framework/autodeploy`), which GitHub Actions
-cannot reach. `.github/workflows/laravel-tests.yml` removes it from the
+cannot reach. `.github/workflows/ci.yml` removes it from the
 ephemeral CI checkout's `composer.json`/`composer.lock` before `composer
 install` — the same workaround [`SETUP.md`](SETUP.md) already documents for
 contributors without GitLab access ("just an auto-deploy helper, not core
