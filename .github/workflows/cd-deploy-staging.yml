@@ -24,7 +24,12 @@ jobs:
     env:
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
+      # workflow_run runs use the default branch's checkout unless pinned —
+      # explicitly check out the commit that triggered the build (develop's
+      # tip), not `main`, which doesn't have docker-compose.staging.yml at all.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Set deployment start time
         run: echo "START_TIME=$(date +%s)" >> "$GITHUB_ENV"
