@@ -121,6 +121,11 @@ jobs:
             set -e
             cd /opt/st_semporna_jetty
 
+            # Renamed so ad-hoc commands on the server can just be
+            # `docker compose ...` (auto-discovered) instead of always
+            # needing `-f docker-compose.staging.yml`.
+            mv -f docker-compose.staging.yml docker-compose.yml
+
             MAX_RETRIES=30
             RETRY_INTERVAL=5
             DEPLOY_HISTORY_FILE=".deploy_history"
@@ -131,18 +136,18 @@ jobs:
             export DOCKER_CONFIG=$(mktemp -d)
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
             export IMAGE_TAG
-            docker compose -f docker-compose.staging.yml pull
+            docker compose -f docker-compose.yml pull
             rm -rf "$DOCKER_CONFIG"
             unset DOCKER_CONFIG
 
-            docker compose -f docker-compose.staging.yml up -d
+            docker compose -f docker-compose.yml up -d
             sleep 5
-            docker compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
+            docker compose -f docker-compose.yml exec -T app php artisan migrate --force
 
             echo "→ Waiting for health check..."
             retry_count=0
             while [ $retry_count -lt $MAX_RETRIES ]; do
-              container_id=$(docker compose -f docker-compose.staging.yml ps -q nginx || true)
+              container_id=$(docker compose -f docker-compose.yml ps -q nginx || true)
               if [ -n "$container_id" ]; then
                 health_status=$(docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "unknown")
                 if [ "$health_status" = "healthy" ]; then
@@ -154,8 +159,8 @@ jobs:
               retry_count=$((retry_count + 1))
               if [ $retry_count -eq $MAX_RETRIES ]; then
                 echo "❌ Health check failed after $((MAX_RETRIES * RETRY_INTERVAL))s"
-                docker compose -f docker-compose.staging.yml ps
-                docker compose -f docker-compose.staging.yml logs --tail=100 app nginx
+                docker compose -f docker-compose.yml ps
+                docker compose -f docker-compose.yml logs --tail=100 app nginx
                 exit 1
               fi
 
@@ -174,7 +179,7 @@ jobs:
             tail -n $MAX_HISTORY "$DEPLOY_HISTORY_FILE" > "${DEPLOY_HISTORY_FILE}.tmp" && mv "${DEPLOY_HISTORY_FILE}.tmp" "$DEPLOY_HISTORY_FILE"
 
             echo "✅ Deployed successfully with tag: ${IMAGE_TAG}"
-            docker compose -f docker-compose.staging.yml ps
+            docker compose -f docker-compose.yml ps
 
       - name: Notify Slack - Deployment Result
         if: always() && steps.guard.outputs.stale != 'true'
