@@ -123,6 +123,12 @@ jobs:
             export IMAGE_TAG
             docker compose -f docker-compose.yml up -d
 
+            # See cd-deploy-staging.yml: nginx caches app's resolved IP at
+            # its own startup and `up -d` above leaves nginx untouched
+            # unless its own service definition changed, so it keeps
+            # proxying to app's pre-rollback IP without this.
+            docker compose -f docker-compose.yml restart nginx
+
             if [ "$SKIP_HEALTH_CHECK" != "true" ]; then
               echo "→ Waiting for health check..."
               retry_count=0

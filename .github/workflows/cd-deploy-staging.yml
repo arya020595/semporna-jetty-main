@@ -141,6 +141,19 @@ jobs:
             unset DOCKER_CONFIG
 
             docker compose -f docker-compose.yml up -d
+
+            # nginx's fastcgi_pass targets a plain hostname, which nginx
+            # resolves once at its own startup and then caches for the
+            # worker's lifetime — it does not follow Docker's embedded DNS
+            # afterwards. Whenever `app` gets recreated by `up -d` above
+            # (i.e. on essentially every deploy that ships a new image) but
+            # nginx's own service definition didn't change, `up -d` leaves
+            # nginx untouched and it keeps proxying to app's stale IP,
+            # 502ing every request until something restarts it. Restarting
+            # it here on every deploy, unconditionally, is what keeps it
+            # correct.
+            docker compose -f docker-compose.yml restart nginx
+
             sleep 5
             docker compose -f docker-compose.yml exec -T app php artisan migrate --force
 
