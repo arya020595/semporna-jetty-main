@@ -1,0 +1,79 @@
+services:
+  app:
+    image: ghcr.io/arya020595/semporna-jetty:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - storage_app:/var/www/storage/app
+      - storage_logs:/var/www/storage/logs
+      - public_shared:/shared/public
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [app-net]
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8080}:80"
+    volumes:
+      - ./docker-compose/nginx:/etc/nginx/conf.d/:ro
+      - public_shared:/var/www/public:ro
+    depends_on:
+      - app
+    networks: [app-net]
+
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-survey}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks: [app-net]
+
+  queue:
+    image: ghcr.io/arya020595/semporna-jetty:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    user: www-data
+    env_file: .env
+    command: php artisan queue:work --tries=5 --sleep=1
+    volumes:
+      - storage_app:/var/www/storage/app
+      - storage_logs:/var/www/storage/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [app-net]
+
+  scheduler:
+    image: ghcr.io/arya020595/semporna-jetty:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    user: www-data
+    env_file: .env
+    command: sh -c "while true; do php artisan schedule:run --no-interaction; sleep 60; done"
+    volumes:
+      - storage_app:/var/www/storage/app
+      - storage_logs:/var/www/storage/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    networks: [app-net]
+
+networks:
+  app-net:
+
+volumes:
+  db_data:
+  storage_app:
+  storage_logs:
+  public_shared:
