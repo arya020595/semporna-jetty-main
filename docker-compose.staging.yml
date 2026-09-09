@@ -24,11 +24,6 @@ services:
       - app
     networks: [app-net]
     healthcheck:
-      # "localhost" resolves to ::1 first inside the container; nginx only
-      # listens on IPv4 here (the official image's IPv6-listen entrypoint
-      # script can't rewrite our read-only-mounted default.conf), so that
-      # lookup order made this healthcheck fail permanently even when nginx
-      # was serving fine on IPv4. Target 127.0.0.1 to sidestep it.
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/up"]
       interval: 10s
       timeout: 5s
