@@ -1,0 +1,77 @@
+# syntax=docker/dockerfile:1
+
+FROM php:7.4-fpm AS vendor
+
+# php:7.4-fpm's Debian bullseye base pulls from the live deb.debian.org
+# mirror by default, whose bullseye-security pool is now inconsistent with
+# its own package index (some listed .deb files 404 — a real, current
+# upstream issue, reproducible on fresh CI runners too, not a local
+# artifact). The base image ships pinned snapshot.debian.org lines
+# (commented out) for exactly this situation — an internally-consistent
+# frozen mirror — so switch to those instead of the live one.
+RUN sed -i -e 's|^# deb http://snapshot|deb http://snapshot|' -e 's|^deb http://deb.debian.org|# deb http://deb.debian.org|' /etc/apt/sources.list \
+ && apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 -o Acquire::http::Timeout=60 && apt-get install -y \
+        git unzip libzip-dev libpng-dev libonig-dev libxml2-dev \
+        libfreetype6-dev libjpeg62-turbo-dev zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd mbstring exif pcntl bcmath zip pdo_mysql mysqli \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+COPY . .
+RUN composer dump-autoload --optimize --no-dev
+
+
+FROM node:16-alpine AS frontend
+
+WORKDIR /app
+
+COPY package.json package-lock.json webpack.mix.js ./
+RUN npm ci
+
+COPY resources ./resources
+COPY public ./public
+# Laravel Mix only sets config.publicPath to 'public' when it detects a
+# Laravel project via File.exists('./artisan') (Mix.js sees()); without it,
+# publicPath stays '' and Manifest.hash()'s path.join() miscomputes an
+# absolute path (e.g. /public/css/app.css instead of public/css/app.css),
+# breaking .version(). The artisan file's content is irrelevant here — Mix
+# only checks that it exists.
+COPY artisan ./artisan
+RUN npm run production
+
+
+FROM php:7.4-fpm AS runtime
+
+# Same live-mirror inconsistency workaround as the vendor stage above.
+RUN sed -i -e 's|^# deb http://snapshot|deb http://snapshot|' -e 's|^deb http://deb.debian.org|# deb http://deb.debian.org|' /etc/apt/sources.list \
+ && apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 -o Acquire::http::Timeout=60 && apt-get install -y \
+        libzip-dev libpng-dev libonig-dev libxml2-dev \
+        libfreetype6-dev libjpeg62-turbo-dev zip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd mbstring exif pcntl bcmath zip pdo_mysql mysqli \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /var/www
+
+COPY . .
+COPY --from=vendor /app/vendor ./vendor
+COPY --from=frontend /app/public/js ./public/js
+COPY --from=frontend /app/public/css ./public/css
+COPY --from=frontend /app/public/mix-manifest.json ./public/mix-manifest.json
+
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
+
+COPY docker/entrypoint-prod.sh /usr/local/bin/entrypoint-prod.sh
+RUN chmod +x /usr/local/bin/entrypoint-prod.sh
+
+ENTRYPOINT ["entrypoint-prod.sh"]
+CMD ["php-fpm"]
+EXPOSE 9000

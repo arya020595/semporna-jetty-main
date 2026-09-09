@@ -1,0 +1,32 @@
+name: External API — OpenAPI Lint
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/external-api/openapi.yaml'
+      - 'docs/external-api/postman_collection.json'
+      - 'redocly.yaml'
+      - '.github/workflows/openapi-lint.yml'
+  pull_request:
+    paths:
+      - 'docs/external-api/openapi.yaml'
+      - 'docs/external-api/postman_collection.json'
+      - 'redocly.yaml'
+      - '.github/workflows/openapi-lint.yml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Lint openapi.yaml (Redocly)
+        run: npx --yes @redocly/cli@2.51.2 lint docs/external-api/openapi.yaml
+
+      - name: Validate postman_collection.json is well-formed
+        run: node -e "JSON.parse(require('fs').readFileSync('docs/external-api/postman_collection.json', 'utf8'))"

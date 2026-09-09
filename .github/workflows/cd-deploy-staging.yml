@@ -1,0 +1,230 @@
+name: CD - Deploy (Staging)
+
+on:
+  workflow_run:
+    workflows: ["CD - Build & Push (Staging)"]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'develop')
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    steps:
+      # workflow_run runs use the default branch's checkout unless pinned —
+      # explicitly check out the commit that triggered the build (develop's
+      # tip), not `main`, which doesn't have docker-compose.staging.yml at all.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set deployment start time
+        run: echo "START_TIME=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Resolve image tag and SHA
+        id: tag
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "tag=staging-${SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      # Closes the race where an older build's deploy runs (queued behind the
+      # concurrency group above) *after* a newer commit's deploy already
+      # shipped — without this, that stale run would silently roll staging
+      # back to older code. `exit 0` only ends this step, not the job, so the
+      # actual skip is enforced via this step's `stale` output gating every
+      # step below (an `if:` condition on the guard step itself would not be
+      # evaluated in time to protect anything after it).
+      - name: Guard against deploying a superseded commit
+        id: guard
+        run: |
+          LATEST=$(git ls-remote https://github.com/${{ github.repository }} refs/heads/develop | cut -f1)
+          if [ "$LATEST" != "${{ steps.tag.outputs.sha }}" ]; then
+            echo "develop has moved to $LATEST since ${{ steps.tag.outputs.sha }} was built — a newer deploy already handled it. Skipping."
+            echo "stale=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "stale=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Notify Slack - Deployment Starting
+        if: steps.guard.outputs.stale != 'true'
+        run: |
+          set -e
+          BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+          SHORT_SHA="${{ steps.tag.outputs.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          ACTOR='${{ github.actor }}'
+          RUN_URL='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          COMMIT_MSG=$(echo ${{ toJson(github.event.workflow_run.head_commit.message || 'Manual dispatch') }} | sed 's/\\n/\n/g')
+
+          payload=$(jq -n \
+            --arg branch "$BRANCH" \
+            --arg sha "$SHORT_SHA" \
+            --arg actor "$ACTOR" \
+            --arg msg "$COMMIT_MSG" \
+            --arg runurl "$RUN_URL" \
+            '{
+              text: ":rocket: [STAGING] deployment started",
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: "🚀 [STAGING] Deployment Started" } },
+                { type: "section", fields: [
+                    { type: "mrkdwn", text: ("*Branch:*\n" + $branch) },
+                    { type: "mrkdwn", text: ("*Commit:*\n" + $sha) },
+                    { type: "mrkdwn", text: ("*Actor:*\n" + $actor) }
+                  ]
+                },
+                { type: "section", text: { type: "mrkdwn", text: ("*Message:*\n" + $msg) } },
+                { type: "context", elements: [
+                    { type: "mrkdwn", text: ("<" + $runurl + "|View workflow run>") }
+                  ]
+                }
+              ]
+            }')
+          echo "$payload" | curl -s -X POST -H 'Content-type: application/json' -d @- "$SLACK_WEBHOOK_URL" || echo "Warning: Failed to send Slack notification"
+
+      - name: Copy compose + nginx config to server
+        if: steps.guard.outputs.stale != 'true'
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          source: "docker-compose.staging.yml,docker-compose/nginx/default.conf"
+          target: "/opt/st_semporna_jetty"
+
+      - name: Deploy over SSH
+        if: steps.guard.outputs.stale != 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_ACTOR: ${{ github.actor }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          envs: GHCR_TOKEN,GHCR_ACTOR,IMAGE_TAG
+          script: |
+            set -e
+            cd /opt/st_semporna_jetty
+
+            MAX_RETRIES=30
+            RETRY_INTERVAL=5
+            DEPLOY_HISTORY_FILE=".deploy_history"
+            MAX_HISTORY=10
+
+            CURRENT_TAG=$(grep -oP '(?<=^IMAGE_TAG=).*' .env 2>/dev/null || echo "none")
+
+            export DOCKER_CONFIG=$(mktemp -d)
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
+            export IMAGE_TAG
+            docker compose -f docker-compose.staging.yml pull
+            rm -rf "$DOCKER_CONFIG"
+            unset DOCKER_CONFIG
+
+            docker compose -f docker-compose.staging.yml up -d
+            sleep 5
+            docker compose -f docker-compose.staging.yml exec -T app php artisan migrate --force
+
+            echo "→ Waiting for health check..."
+            retry_count=0
+            while [ $retry_count -lt $MAX_RETRIES ]; do
+              container_id=$(docker compose -f docker-compose.staging.yml ps -q nginx || true)
+              if [ -n "$container_id" ]; then
+                health_status=$(docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "unknown")
+                if [ "$health_status" = "healthy" ]; then
+                  echo "✓ Service is healthy!"
+                  break
+                fi
+              fi
+
+              retry_count=$((retry_count + 1))
+              if [ $retry_count -eq $MAX_RETRIES ]; then
+                echo "❌ Health check failed after $((MAX_RETRIES * RETRY_INTERVAL))s"
+                docker compose -f docker-compose.staging.yml ps
+                docker compose -f docker-compose.staging.yml logs --tail=100 app nginx
+                exit 1
+              fi
+
+              echo "  Attempt ${retry_count}/${MAX_RETRIES}..."
+              sleep $RETRY_INTERVAL
+            done
+
+            STATUS=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:${PORT:-8080}/up" || echo 000)
+            if [ "$STATUS" != "204" ] && [ "$STATUS" != "200" ]; then
+              echo "❌ Sanity curl against the published port failed ($STATUS)"
+              exit 1
+            fi
+            echo "✓ Port mapping confirmed ($STATUS)"
+
+            echo "$(date -Iseconds)|${IMAGE_TAG}|${CURRENT_TAG}" >> "$DEPLOY_HISTORY_FILE"
+            tail -n $MAX_HISTORY "$DEPLOY_HISTORY_FILE" > "${DEPLOY_HISTORY_FILE}.tmp" && mv "${DEPLOY_HISTORY_FILE}.tmp" "$DEPLOY_HISTORY_FILE"
+
+            echo "✅ Deployed successfully with tag: ${IMAGE_TAG}"
+            docker compose -f docker-compose.staging.yml ps
+
+      - name: Notify Slack - Deployment Result
+        if: always() && steps.guard.outputs.stale != 'true'
+        run: |
+          set -e
+          BRANCH="${{ github.event.workflow_run.head_branch || github.ref_name }}"
+          SHORT_SHA="${{ steps.tag.outputs.sha }}"
+          SHORT_SHA="${SHORT_SHA:0:7}"
+          ACTOR='${{ github.actor }}'
+          RUN_URL='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          STATUS='${{ job.status }}'
+          END_TIME=$(date +%s)
+          DURATION=$(( END_TIME - START_TIME ))
+          HUMAN_DURATION=$(printf '%02dm:%02ds' $((DURATION/60)) $((DURATION%60)))
+          COMMIT_MSG=$(echo ${{ toJson(github.event.workflow_run.head_commit.message || 'Manual dispatch') }} | sed 's/\\n/\n/g')
+
+          if [ "$STATUS" = "success" ]; then
+            TITLE="✅ [STAGING] Deployment Succeeded"
+            RESULT_LINE="*Result:* Success"
+          else
+            TITLE="❌ [STAGING] Deployment Failed"
+            RESULT_LINE="*Result:* Failure"
+          fi
+
+          payload=$(jq -n \
+            --arg title "$TITLE" \
+            --arg branch "$BRANCH" \
+            --arg sha "$SHORT_SHA" \
+            --arg actor "$ACTOR" \
+            --arg msg "$COMMIT_MSG" \
+            --arg runurl "$RUN_URL" \
+            --arg result "$RESULT_LINE" \
+            --arg dur "$HUMAN_DURATION" \
+            '{
+              text: $title,
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: $title } },
+                { type: "section", fields: [
+                    { type: "mrkdwn", text: ("*Branch:*\n" + $branch) },
+                    { type: "mrkdwn", text: ("*Commit:*\n" + $sha) },
+                    { type: "mrkdwn", text: ("*Actor:*\n" + $actor) },
+                    { type: "mrkdwn", text: $result },
+                    { type: "mrkdwn", text: ("*Duration:*\n" + $dur) }
+                  ]
+                },
+                { type: "section", text: { type: "mrkdwn", text: ("*Message:*\n" + $msg) } },
+                { type: "context", elements: [
+                    { type: "mrkdwn", text: ("<" + $runurl + "|View workflow run>") }
+                  ]
+                }
+              ]
+            }')
+          echo "$payload" | curl -s -X POST -H 'Content-type: application/json' -d @- "$SLACK_WEBHOOK_URL" || echo "Warning: Failed to send Slack notification"

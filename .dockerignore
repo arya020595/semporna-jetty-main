@@ -1,0 +1,44 @@
+.git
+.github
+node_modules
+vendor
+tests
+
+storage/logs/*
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/framework/testing/*
+storage/*.key
+storage/export
+
+# Gitignored locally but NOT respected by Docker's build context (that's
+# .dockerignore's job) — without these, stale dev-generated files sitting
+# in the working tree (e.g. bootstrap/cache/packages.php from a prior local
+# `composer install` with dev deps) get baked into the image via `COPY . .`.
+# Confirmed real: an un-excluded bootstrap/cache/packages.php once shipped
+# a dev-only Ignition provider reference into a --no-dev production image.
+bootstrap/cache/*.php
+public/hot
+public/storage
+
+.env
+.env.*
+!.env.example
+
+docker-compose*.yml
+Dockerfile
+Dockerfile.production
+.dockerignore
+
+phpunit.xml
+.phpunit.result.cache
+.styleci.yml
+.editorconfig
+.vscode
+*.log
+
+Homestead.json
+Homestead.yaml
+
+semporna_jetty_prod_2026-08-31.sql

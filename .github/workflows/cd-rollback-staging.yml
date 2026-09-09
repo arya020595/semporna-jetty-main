@@ -1,0 +1,208 @@
+name: CD - Rollback (Staging)
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to roll back to (e.g. staging-a1b2c3d). Find it in a previous CD - Build & Push (Staging) run, or the GHCR package's version list."
+        required: true
+        type: string
+      rollback_migrations:
+        description: "Number of migrations to roll back (0 = no migration rollback)"
+        required: false
+        default: "0"
+        type: string
+      skip_health_check:
+        description: "Skip health check (use for emergency rollbacks)"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: cd-deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+    steps:
+      - name: Set rollback start time
+        run: echo "START_TIME=$(date +%s)" >> "$GITHUB_ENV"
+
+      - name: Notify Slack - Rollback Starting
+        run: |
+          set -e
+          IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+          MIGRATION_STEPS="${{ github.event.inputs.rollback_migrations }}"
+          ACTOR='${{ github.actor }}'
+          RUN_URL='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+
+          payload=$(jq -n \
+            --arg tag "$IMAGE_TAG" \
+            --arg migrations "$MIGRATION_STEPS" \
+            --arg actor "$ACTOR" \
+            --arg runurl "$RUN_URL" \
+            '{
+              text: ":warning: [STAGING] rollback started",
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: "⚠️ [STAGING] Rollback Started" } },
+                { type: "section", fields: [
+                    { type: "mrkdwn", text: ("*Target Tag:*\n" + $tag) },
+                    { type: "mrkdwn", text: ("*Migration Rollback:*\n" + $migrations + " step(s)") },
+                    { type: "mrkdwn", text: ("*Actor:*\n" + $actor) }
+                  ]
+                },
+                { type: "context", elements: [
+                    { type: "mrkdwn", text: ("<" + $runurl + "|View workflow run>") }
+                  ]
+                }
+              ]
+            }')
+          echo "$payload" | curl -s -X POST -H 'Content-type: application/json' -d @- "$SLACK_WEBHOOK_URL" || echo "Warning: Failed to send Slack notification"
+
+      - name: Rollback staging server
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          IMAGE_TAG: ${{ github.event.inputs.image_tag }}
+          MIGRATION_STEPS: ${{ github.event.inputs.rollback_migrations }}
+          SKIP_HEALTH_CHECK: ${{ github.event.inputs.skip_health_check }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.STAGING_HOST }}
+          username: ${{ secrets.STAGING_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          envs: IMAGE_TAG,MIGRATION_STEPS,SKIP_HEALTH_CHECK,GHCR_TOKEN,GHCR_ACTOR
+          script: |
+            set -e
+            cd /opt/st_semporna_jetty
+
+            MAX_RETRIES=30
+            RETRY_INTERVAL=5
+            SHARED_IMAGE="ghcr.io/arya020595/semporna-jetty"
+            DEPLOY_HISTORY_FILE=".deploy_history"
+
+            if ! [[ "$MIGRATION_STEPS" =~ ^[0-9]+$ ]]; then
+              echo "❌ Invalid rollback_migrations value: '$MIGRATION_STEPS'. It must be an integer >= 0."
+              exit 1
+            fi
+
+            CURRENT_TAG=$(grep -oP '(?<=^IMAGE_TAG=).*' .env 2>/dev/null || echo "none")
+
+            export DOCKER_CONFIG=$(mktemp -d)
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
+
+            echo "→ Verifying image exists: ${SHARED_IMAGE}:${IMAGE_TAG}"
+            if ! docker pull "${SHARED_IMAGE}:${IMAGE_TAG}"; then
+              echo "❌ Image not found: ${SHARED_IMAGE}:${IMAGE_TAG}"
+              echo "   Available tags: https://github.com/arya020595/semporna-jetty-main/pkgs/container/semporna-jetty"
+              rm -rf "$DOCKER_CONFIG"
+              exit 1
+            fi
+            rm -rf "$DOCKER_CONFIG"
+            unset DOCKER_CONFIG
+
+            echo "→ Updating .env with rollback image..."
+            if [ ! -f .env ]; then
+              echo "❌ .env file not found; cannot safely update IMAGE_TAG. Aborting."
+              exit 1
+            fi
+            sed -i "s|^IMAGE_TAG=.*|IMAGE_TAG=${IMAGE_TAG}|" .env
+            grep -q "^IMAGE_TAG=" .env || echo "IMAGE_TAG=${IMAGE_TAG}" >> .env
+
+            # Roll back data before swapping code, same ordering as a forward deploy runs migrate after up.
+            if [ "$MIGRATION_STEPS" -gt 0 ]; then
+              echo "→ Rolling back ${MIGRATION_STEPS} migration(s)..."
+              docker compose -f docker-compose.staging.yml exec -T app php artisan migrate:rollback --step="$MIGRATION_STEPS" --force
+            fi
+
+            echo "→ Restarting services with rollback image..."
+            export IMAGE_TAG
+            docker compose -f docker-compose.staging.yml up -d
+
+            if [ "$SKIP_HEALTH_CHECK" != "true" ]; then
+              echo "→ Waiting for health check..."
+              retry_count=0
+              while [ $retry_count -lt $MAX_RETRIES ]; do
+                container_id=$(docker compose -f docker-compose.staging.yml ps -q nginx || true)
+                if [ -n "$container_id" ]; then
+                  health_status=$(docker inspect --format '{{.State.Health.Status}}' "$container_id" 2>/dev/null || echo "unknown")
+                  if [ "$health_status" = "healthy" ]; then
+                    echo "✓ Service is healthy!"
+                    break
+                  fi
+                fi
+
+                retry_count=$((retry_count + 1))
+                if [ $retry_count -eq $MAX_RETRIES ]; then
+                  echo "❌ Health check failed after $((MAX_RETRIES * RETRY_INTERVAL))s"
+                  docker compose -f docker-compose.staging.yml ps
+                  docker compose -f docker-compose.staging.yml logs --tail=100 app nginx
+                  exit 1
+                fi
+
+                echo "  Attempt ${retry_count}/${MAX_RETRIES}..."
+                sleep $RETRY_INTERVAL
+              done
+            else
+              echo "→ Skipping health check (emergency rollback)"
+              sleep 10
+            fi
+
+            echo "$(date -Iseconds)|${IMAGE_TAG}|${CURRENT_TAG}" >> "$DEPLOY_HISTORY_FILE"
+            tail -n 10 "$DEPLOY_HISTORY_FILE" > "${DEPLOY_HISTORY_FILE}.tmp" && mv "${DEPLOY_HISTORY_FILE}.tmp" "$DEPLOY_HISTORY_FILE"
+
+            echo "✅ Rolled back successfully to ${IMAGE_TAG}!"
+            docker compose -f docker-compose.staging.yml ps
+
+      - name: Notify Slack - Rollback Result
+        if: always()
+        run: |
+          set -e
+          IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+          MIGRATION_STEPS="${{ github.event.inputs.rollback_migrations }}"
+          ACTOR='${{ github.actor }}'
+          RUN_URL='${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+          STATUS='${{ job.status }}'
+          END_TIME=$(date +%s)
+          DURATION=$(( END_TIME - START_TIME ))
+          HUMAN_DURATION=$(printf '%02dm:%02ds' $((DURATION/60)) $((DURATION%60)))
+
+          if [ "$STATUS" = "success" ]; then
+            TITLE="✅ [STAGING] Rollback Succeeded"
+            RESULT_LINE="*Result:* Success"
+          else
+            TITLE="❌ [STAGING] Rollback Failed"
+            RESULT_LINE="*Result:* Failure"
+          fi
+
+          payload=$(jq -n \
+            --arg title "$TITLE" \
+            --arg tag "$IMAGE_TAG" \
+            --arg migrations "$MIGRATION_STEPS" \
+            --arg actor "$ACTOR" \
+            --arg runurl "$RUN_URL" \
+            --arg result "$RESULT_LINE" \
+            --arg dur "$HUMAN_DURATION" \
+            '{
+              text: $title,
+              blocks: [
+                { type: "header", text: { type: "plain_text", text: $title } },
+                { type: "section", fields: [
+                    { type: "mrkdwn", text: ("*Rolled back to:*\n" + $tag) },
+                    { type: "mrkdwn", text: ("*Migration Rollback:*\n" + $migrations + " step(s)") },
+                    { type: "mrkdwn", text: ("*Actor:*\n" + $actor) },
+                    { type: "mrkdwn", text: $result },
+                    { type: "mrkdwn", text: ("*Duration:*\n" + $dur) }
+                  ]
+                },
+                { type: "context", elements: [
+                    { type: "mrkdwn", text: ("<" + $runurl + "|View workflow run>") }
+                  ]
+                }
+              ]
+            }')
+          echo "$payload" | curl -s -X POST -H 'Content-type: application/json' -d @- "$SLACK_WEBHOOK_URL" || echo "Warning: Failed to send Slack notification"
