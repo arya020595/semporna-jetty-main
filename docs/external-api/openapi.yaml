@@ -164,6 +164,7 @@ components:
           type: string
           example: Unauthorized.
         data:
+          type: object
           nullable: true
           example: null
       required: [success, message, data]

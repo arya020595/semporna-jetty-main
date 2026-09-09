@@ -1,0 +1,13 @@
+apis:
+  external-api:
+    root: docs/external-api/openapi.yaml
+
+extends:
+  - recommended
+
+rules:
+  # Intentional: this is an internal partner API, not published publicly.
+  info-license: off
+  # Intentional: the only server is local dev (matches APP_URL in .env) —
+  # see docs/external-api/openapi.yaml's `servers` description.
+  no-server-example.com: off

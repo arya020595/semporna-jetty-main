@@ -28,6 +28,11 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
+        // Deliberately registered outside the 'web'/'api' groups: no session,
+        // CSRF, or DB dependency, so it stays truthful as a liveness check
+        // even when the database is the thing that's down.
+        Route::get('/up', fn () => response()->noContent());
+
         $this->routes(function () {
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));

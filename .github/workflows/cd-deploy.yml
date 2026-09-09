@@ -1,0 +1,112 @@
+name: CD - Deploy
+
+on:
+  workflow_run:
+    workflows: ["CD - Build & Push"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: "Image tag to deploy (e.g. main-a1b2c3d). Leave blank to deploy the latest build on main — this is also how you roll back."
+        required: false
+
+concurrency:
+  group: cd-deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  deploy:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Resolve image tag and SHA
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "tag=${{ github.event.inputs.image_tag }}" >> "$GITHUB_OUTPUT"
+            echo "sha=manual" >> "$GITHUB_OUTPUT"
+          else
+            SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+            echo "tag=main-${SHA:0:7}" >> "$GITHUB_OUTPUT"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Closes the race where an older build's deploy runs (queued behind the
+      # concurrency group above) *after* a newer commit's deploy already
+      # shipped — without this, that stale run would silently roll production
+      # back to older code. Skipped entirely for manual/rollback runs, which
+      # are an intentional override.
+      - name: Guard against deploying a superseded commit
+        if: steps.tag.outputs.sha != 'manual'
+        run: |
+          LATEST=$(git ls-remote https://github.com/${{ github.repository }} refs/heads/main | cut -f1)
+          if [ "$LATEST" != "${{ steps.tag.outputs.sha }}" ]; then
+            echo "main has moved to $LATEST since ${{ steps.tag.outputs.sha }} was built — a newer deploy already handled it. Skipping."
+            exit 0
+          fi
+
+      - name: Copy compose + nginx config to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          source: "docker-compose.prod.yml,docker-compose/nginx/default.conf"
+          target: "/opt/st_semporna_jetty"
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GHCR_ACTOR: ${{ github.actor }}
+          IMAGE_TAG: ${{ steps.tag.outputs.tag }}
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          envs: GHCR_TOKEN,GHCR_ACTOR,IMAGE_TAG
+          script: |
+            set -e
+            cd /opt/st_semporna_jetty
+
+            export DOCKER_CONFIG=$(mktemp -d)
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_ACTOR" --password-stdin
+            export IMAGE_TAG
+            docker compose -f docker-compose.prod.yml pull
+            rm -rf "$DOCKER_CONFIG"
+            unset DOCKER_CONFIG
+
+            docker compose -f docker-compose.prod.yml up -d
+            sleep 5
+            docker compose -f docker-compose.prod.yml exec -T app php artisan migrate --force
+
+            for i in $(seq 1 10); do
+              STATUS=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:${PORT:-8080}/up" || echo 000)
+              if [ "$STATUS" = "204" ] || [ "$STATUS" = "200" ]; then
+                echo "Health check passed ($STATUS)"
+                exit 0
+              fi
+              echo "Health check attempt $i: $STATUS"
+              sleep 3
+            done
+
+            echo "Health check failed after retries"
+            docker compose -f docker-compose.prod.yml logs --tail=100 app
+            exit 1
+
+      - name: Notify Slack
+        if: always()
+        run: |
+          STATUS="${{ job.status }}"
+          curl -X POST -H 'Content-type: application/json' \
+            --data "{\"text\":\"Deploy ${STATUS} — semporna-jetty ${{ steps.tag.outputs.tag }} — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|logs>\"}" \
+            "${{ secrets.SLACK_WEBHOOK_URL }}"
