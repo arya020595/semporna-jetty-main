@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AppVersionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\External\ActivityController as ExternalActivityController;
 use App\Http\Controllers\Api\External\DestinationController as ExternalDestinationController;
+use App\Http\Controllers\Api\External\NationalityController as ExternalNationalityController;
 use App\Http\Controllers\Api\LoginOtpController;
 use App\Http\Controllers\Api\ProfileController;
 use App\Http\Controllers\Api\RegisterController;
@@ -59,4 +60,5 @@ Route::prefix('external')
     ->group(function () {
         Route::get('/destinations', [ExternalDestinationController::class, 'index']);
         Route::get('/activities', [ExternalActivityController::class, 'index']);
+        Route::get('/nationalities', [ExternalNationalityController::class, 'index']);
     });

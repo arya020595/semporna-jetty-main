@@ -4,9 +4,10 @@ info:
   description: >
     Read-only reference-data endpoints exposed to external partner systems —
     currently the Semporna Jetty Resort Manifest Form, which populates its
-    "Destination" and "Activity" dropdowns from this API. All endpoints are
-    authenticated with a static bearer token and are unrelated to this app's
-    own mobile-app API (which uses Laravel Sanctum session tokens instead).
+    "Destination", "Activity", and "Nationality" dropdowns from this API. All
+    endpoints are authenticated with a static bearer token and are unrelated
+    to this app's own mobile-app API (which uses Laravel Sanctum session
+    tokens instead).
   version: 1.0.0
 servers:
   - url: http://localhost:8000/api/external
@@ -94,6 +95,45 @@ paths:
                   - id: 5
                     code: ACT_00005
                     title: IDC
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /nationalities:
+    get:
+      summary: List nationalities
+      description: >
+        Returns every active nationality, for populating a "Nationality"
+        dropdown. No pagination and no query parameters — the full active
+        list is always returned.
+      operationId: listNationalities
+      tags:
+        - Reference Data
+      responses:
+        '200':
+          description: Nationalities retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                message: List Nationalities
+                data:
+                  - id: 1
+                    code: NAT_00001
+                    title: Malaysian
+                  - id: 2
+                    code: NAT_00002
+                    title: Singaporean
+                  - id: 3
+                    code: NAT_00003
+                    title: Indonesian
+                  - id: 4
+                    code: NAT_00004
+                    title: British
+                  - id: 5
+                    code: NAT_00005
+                    title: Australian
         '401':
           $ref: '#/components/responses/Unauthorized'
 

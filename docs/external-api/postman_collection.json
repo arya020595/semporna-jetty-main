@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Semporna Jetty — External Partner API",
-		"description": "Read-only reference-data endpoints exposed to external partner systems (currently the Semporna Jetty Resort Manifest Form). See docs/external-api/openapi.yaml in the same repo for the full contract, and App\\Http\\Controllers\\Api\\External\\{Destination,Activity}Controller for the implementation.",
+		"description": "Read-only reference-data endpoints exposed to external partner systems (currently the Semporna Jetty Resort Manifest Form). See docs/external-api/openapi.yaml in the same repo for the full contract, and App\\Http\\Controllers\\Api\\External\\{Destination,Activity,Nationality}Controller for the implementation.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -179,6 +179,86 @@
 							"raw": "{{base_url}}/api/external/activities",
 							"host": ["{{base_url}}"],
 							"path": ["api", "external", "activities"]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\n  \"success\": false,\n  \"message\": \"Unauthorized.\",\n  \"data\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "List Nationalities",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/external/nationalities",
+					"host": ["{{base_url}}"],
+					"path": ["api", "external", "nationalities"]
+				},
+				"description": "Returns every active nationality, for populating the Resort Manifest Form's \"Nationality\" dropdown. No pagination, no query params, no type filter."
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Status code is 200', function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test('success is true', function () {",
+							"    pm.expect(pm.response.json().success).to.be.true;",
+							"});",
+							"",
+							"pm.test('data is an array of nationalities', function () {",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.data).to.be.an('array');",
+							"    if (body.data.length > 0) {",
+							"        pm.expect(body.data[0]).to.have.all.keys('id', 'code', 'title');",
+							"    }",
+							"});"
+						]
+					}
+				}
+			],
+			"response": [
+				{
+					"name": "200 OK",
+					"originalRequest": {
+						"method": "GET",
+						"header": [{ "key": "Accept", "value": "application/json" }],
+						"url": {
+							"raw": "{{base_url}}/api/external/nationalities",
+							"host": ["{{base_url}}"],
+							"path": ["api", "external", "nationalities"]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"header": [{ "key": "Content-Type", "value": "application/json" }],
+					"body": "{\n  \"success\": true,\n  \"message\": \"List Nationalities\",\n  \"data\": [\n    { \"id\": 1, \"code\": \"NAT_00001\", \"title\": \"Malaysian\" },\n    { \"id\": 2, \"code\": \"NAT_00002\", \"title\": \"Singaporean\" },\n    { \"id\": 3, \"code\": \"NAT_00003\", \"title\": \"Indonesian\" },\n    { \"id\": 4, \"code\": \"NAT_00004\", \"title\": \"British\" },\n    { \"id\": 5, \"code\": \"NAT_00005\", \"title\": \"Australian\" }\n  ]\n}"
+				},
+				{
+					"name": "401 Unauthorized",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{ "key": "Accept", "value": "application/json" },
+							{ "key": "Authorization", "value": "Bearer wrong-token" }
+						],
+						"url": {
+							"raw": "{{base_url}}/api/external/nationalities",
+							"host": ["{{base_url}}"],
+							"path": ["api", "external", "nationalities"]
 						}
 					},
 					"status": "Unauthorized",

@@ -1,6 +1,6 @@
-# External Partner API — Destinations & Activities
+# External Partner API — Destinations, Activities & Nationalities
 
-Read-only reference-data endpoints for external partner systems (currently the Semporna Jetty Resort Manifest Form). Implementation: `app/Http/Controllers/Api/External/{Destination,Activity}Controller.php`, secured by `app/Http/Middleware/VerifyExternalApiToken.php`.
+Read-only reference-data endpoints for external partner systems (currently the Semporna Jetty Resort Manifest Form). Implementation: `app/Http/Controllers/Api/External/{Destination,Activity,Nationality}Controller.php`, secured by `app/Http/Middleware/VerifyExternalApiToken.php`.
 
 ## Browsing the docs
 
@@ -27,6 +27,7 @@ See [`SWAGGER.md`](SWAGGER.md) for how that page is wired up.
 
 ## Notes
 
-- Both endpoints return the full active list every time — no pagination, no `?search=` query param, since they back static `<select>` dropdowns rather than a typeahead.
+- All endpoints return the full active list every time — no pagination, no `?search=` query param, since they back static `<select>` dropdowns rather than a typeahead.
 - `/destinations` is pre-filtered server-side to actual tour/dive destinations (`RefDestination::TYPE_DESTINATION`) — departure/jetty points, which live in the same underlying table, are never returned here.
+- `/nationalities` has no `type`-style filter — every non-deleted `ref_nationality` row is returned.
 - Auth is a static bearer token (`Authorization: Bearer <token>`), unrelated to this app's own Sanctum-based mobile API — see `config/external_api.php` for where the expected token is configured.
