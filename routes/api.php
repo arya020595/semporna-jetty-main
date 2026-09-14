@@ -5,6 +5,8 @@ use App\Http\Controllers\Api\AppConfigController;
 use App\Http\Controllers\Api\AppVersionController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\External\ActivityController as ExternalActivityController;
+use App\Http\Controllers\Api\External\BoatController as ExternalBoatController;
+use App\Http\Controllers\Api\External\BoatmanController as ExternalBoatmanController;
 use App\Http\Controllers\Api\External\DestinationController as ExternalDestinationController;
 use App\Http\Controllers\Api\External\NationalityController as ExternalNationalityController;
 use App\Http\Controllers\Api\LoginOtpController;
@@ -61,4 +63,6 @@ Route::prefix('external')
         Route::get('/destinations', [ExternalDestinationController::class, 'index']);
         Route::get('/activities', [ExternalActivityController::class, 'index']);
         Route::get('/nationalities', [ExternalNationalityController::class, 'index']);
+        Route::get('/boats', [ExternalBoatController::class, 'index']);
+        Route::get('/boatmen', [ExternalBoatmanController::class, 'index']);
     });
