@@ -5,7 +5,9 @@ ARG user
 ARG uid
 
 # Install system dependencies
-RUN apt-get update && apt-get install -y \
+# ponytail: frozen packages for legacy PHP 7.4; upgrade PHP to return to maintained repositories.
+RUN sed -i -e 's|^# deb http://snapshot|deb http://snapshot|' -e 's|^deb http://deb.debian.org|# deb http://deb.debian.org|' /etc/apt/sources.list \
+    && apt-get update -o Acquire::Check-Valid-Until=false -o Acquire::Retries=5 -o Acquire::http::Timeout=60 && apt-get install -y \
     git \
     curl \
     libpng-dev \
