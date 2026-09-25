@@ -4,9 +4,12 @@ info:
   description: >
     Read-only reference-data endpoints exposed to external partner systems —
     currently the Semporna Jetty Resort Manifest Form, which populates its
-    "Destination" and "Activity" dropdowns from this API. All endpoints are
-    authenticated with a static bearer token and are unrelated to this app's
-    own mobile-app API (which uses Laravel Sanctum session tokens instead).
+    "Destination", "Activity", "Nationality", "Boat No." (with cascading
+    "Boatman Name" / "Assistant Boatman Name"), and "Instructor" /
+    "Divemaster" / "Guide" dropdowns from this API. All endpoints are
+    authenticated with a static bearer token and are unrelated to this
+    app's own mobile-app API (which uses Laravel Sanctum session tokens
+    instead).
   version: 1.0.0
 servers:
   - url: http://localhost:8000/api/external
@@ -97,6 +100,214 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /nationalities:
+    get:
+      summary: List nationalities
+      description: >
+        Returns every active nationality, for populating a "Nationality"
+        dropdown. No pagination and no query parameters — the full active
+        list is always returned.
+      operationId: listNationalities
+      tags:
+        - Reference Data
+      responses:
+        '200':
+          description: Nationalities retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessEnvelope'
+              example:
+                success: true
+                message: List Nationalities
+                data:
+                  - id: 1
+                    code: NAT_00001
+                    title: Malaysian
+                  - id: 2
+                    code: NAT_00002
+                    title: Singaporean
+                  - id: 3
+                    code: NAT_00003
+                    title: Indonesian
+                  - id: 4
+                    code: NAT_00004
+                    title: British
+                  - id: 5
+                    code: NAT_00005
+                    title: Australian
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /boats:
+    get:
+      summary: List boats
+      description: >
+        Returns every boat across all partner companies, each with its
+        boat-assigned crew nested inline, for populating a "Boat No."
+        dropdown whose "Boatman Name" / "Assistant Boatman Name" dropdowns
+        cascade from the selected boat. `boatman` here only ever contains
+        type 1 (Boatman) and 2 (Assistant) — those are the only types ever
+        assigned to a boat; Instructor/Divemaster/Guide (types 3-5) are
+        company-wide crew not tied to any boat, so they never appear here —
+        see `GET /boatmen` for those. Not scoped by company/resort — the
+        static bearer token isn't per-partner today, so every company's
+        boats are returned. No pagination and no query parameters: the full
+        list is always returned, since this backs a static <select>, not a
+        typeahead.
+      operationId: listBoats
+      tags:
+        - Reference Data
+      responses:
+        '200':
+          description: Boats retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List Boats
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Boat'
+                required: [success, message, data]
+              example:
+                success: true
+                message: List Boats
+                data:
+                  - id: 1
+                    name: Sea Explorer
+                    number: SA/P11/0513
+                    license: LIC-00512
+                    license_expiry_date: '2026-08-01'
+                    capacity: 12
+                    company:
+                      id: 3
+                      name: Coral Breeze Resort Semporna
+                    boatman:
+                      - id: 10
+                        boat_id: 1
+                        name: Ahmad bin Yusof
+                        ic_no: '901231-12-1234'
+                        mate_card: MC-1029
+                        seaman_card_no: SC-5521
+                        type: 1
+                        type_label: Boatman
+                      - id: 11
+                        boat_id: 1
+                        name: Rahim bin Osman
+                        ic_no: '920501-12-5678'
+                        mate_card: null
+                        seaman_card_no: SC-5522
+                        type: 2
+                        type_label: Assistant
+                  - id: 2
+                    name: Ocean Breeze
+                    number: SA/P12/0510
+                    license: LIC-00498
+                    license_expiry_date: '2026-02-15'
+                    capacity: 10
+                    company:
+                      id: 3
+                      name: Coral Breeze Resort Semporna
+                    boatman: []
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /boatmen:
+    get:
+      summary: List boatmen (all types, all companies)
+      description: >
+        Returns every crew record — all 5 types, across all partner
+        companies — as a flat list, each carrying its own `company`. Use
+        this for the Manifest Form's "Instructor Details" / "Divemaster
+        Details" / "Guide Details" sections (types 3/4/5), which have no
+        "Boat No." field because that crew isn't assigned to any specific
+        boat (`boat_id: null`) — filter this list client-side by `type` to
+        populate each dropdown. Types 1 (Boatman) and 2 (Assistant) are also
+        included here (with their `boat_id` set) for completeness, but the
+        Boat No. → Boatman/Assistant cascade should use the nested
+        `boatman[]` already returned by `GET /boats` rather than
+        cross-referencing this list. No pagination and no query parameters.
+      operationId: listBoatmen
+      tags:
+        - Reference Data
+      responses:
+        '200':
+          description: Boatmen retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: List Boatmen
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Boatman'
+                required: [success, message, data]
+              example:
+                success: true
+                message: List Boatmen
+                data:
+                  - id: 10
+                    boat_id: 1
+                    name: Ahmad bin Yusof
+                    ic_no: '901231-12-1234'
+                    mate_card: MC-1029
+                    seaman_card_no: SC-5521
+                    type: 1
+                    type_label: Boatman
+                    company:
+                      id: 3
+                      name: Coral Breeze Resort Semporna
+                  - id: 20
+                    boat_id: null
+                    name: Faizal Instructor
+                    ic_no: '880101-12-1111'
+                    mate_card: null
+                    seaman_card_no: null
+                    type: 3
+                    type_label: Instructor
+                    company:
+                      id: 3
+                      name: Coral Breeze Resort Semporna
+                  - id: 21
+                    boat_id: null
+                    name: Diana Divemaster
+                    ic_no: '890202-12-2222'
+                    mate_card: null
+                    seaman_card_no: null
+                    type: 4
+                    type_label: Divemaster
+                    company:
+                      id: 3
+                      name: Coral Breeze Resort Semporna
+                  - id: 22
+                    boat_id: null
+                    name: Guntur Guide
+                    ic_no: '900303-12-3333'
+                    mate_card: null
+                    seaman_card_no: null
+                    type: 5
+                    type_label: Guide
+                    company:
+                      id: 3
+                      name: Coral Breeze Resort Semporna
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -153,6 +364,103 @@ components:
           items:
             $ref: '#/components/schemas/RefItem'
       required: [success, message, data]
+
+    Boatman:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 10
+        boat_id:
+          type: integer
+          nullable: true
+          description: >
+            The boat this crew member is assigned to. Always set for type 1
+            (Boatman) and 2 (Assistant) — always null for type 3
+            (Instructor), 4 (Divemaster), 5 (Guide), which are company-wide
+            crew not tied to any specific boat.
+          example: 1
+        name:
+          type: string
+          example: Ahmad bin Yusof
+        ic_no:
+          type: string
+          nullable: true
+          example: '901231-12-1234'
+        mate_card:
+          type: string
+          nullable: true
+          example: MC-1029
+        seaman_card_no:
+          type: string
+          nullable: true
+          example: SC-5521
+        type:
+          type: integer
+          description: '1=Boatman, 2=Assistant, 3=Instructor, 4=Divemaster, 5=Guide'
+          example: 1
+        type_label:
+          type: string
+          nullable: true
+          example: Boatman
+        company:
+          type: object
+          nullable: true
+          description: >
+            Only present on `GET /boatmen` (the flat endpoint). Omitted when
+            a Boatman is nested inside a `/boats` entry, since the parent
+            boat's own `company` already gives this.
+          properties:
+            id:
+              type: integer
+              example: 3
+            name:
+              type: string
+              example: Coral Breeze Resort Semporna
+          required: [id, name]
+      required: [id, boat_id, name, ic_no, mate_card, seaman_card_no, type, type_label]
+
+    Boat:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Sea Explorer
+        number:
+          type: string
+          nullable: true
+          example: SA/P11/0513
+        license:
+          type: string
+          nullable: true
+          example: LIC-00512
+        license_expiry_date:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-08-01'
+        capacity:
+          type: integer
+          nullable: true
+          example: 12
+        company:
+          type: object
+          properties:
+            id:
+              type: integer
+              example: 3
+            name:
+              type: string
+              example: Coral Breeze Resort Semporna
+          required: [id, name]
+        boatman:
+          type: array
+          items:
+            $ref: '#/components/schemas/Boatman'
+      required: [id, name, number, license, license_expiry_date, capacity, company, boatman]
 
     ErrorEnvelope:
       type: object

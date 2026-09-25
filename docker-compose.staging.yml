@@ -24,7 +24,7 @@ services:
       - app
     networks: [app-net]
     healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost/up"]
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/up"]
       interval: 10s
       timeout: 5s
       retries: 5

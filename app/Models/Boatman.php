@@ -48,4 +48,17 @@ class Boatman extends Model
     {
         return $this->morphMany(Fileable::class, 'fileable');
     }
+
+    public function typeLabel(): ?string
+    {
+        $labels = [
+            self::TYPE_BOATMAN => 'Boatman',
+            self::TYPE_ASSISTANT => 'Assistant',
+            self::TYPE_INSTRUCTOR => 'Instructor',
+            self::TYPE_DIVEMASTER => 'Divemaster',
+            self::TYPE_GUIDE => 'Guide',
+        ];
+
+        return $labels[(int) $this->type] ?? null;
+    }
 }
