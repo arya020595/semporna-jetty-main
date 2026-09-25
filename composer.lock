@@ -977,50 +977,6 @@
             "time": "2022-09-10T18:51:20+00:00"
         },
         {
-            "name": "easycode/autopull",
-            "version": "v1.0.4",
-            "source": {
-                "type": "git",
-                "url": "ssh://git@gitlab.com/easycode.id/framework/autodeploy.git",
-                "reference": "f856bd96d8cab04f2b2be45b9e07753a47c080b2"
-            },
-            "require": {
-                "illuminate/http": ">=5.8",
-                "illuminate/support": ">=5.8",
-                "php": ">=7.1.3"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7.1"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Easycode\\Autopull\\Providers\\AutopullProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Easycode\\Autopull\\": "src"
-                },
-                "files": [
-                    "helpers.php"
-                ]
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Benyamin Limanto",
-                    "email": "me@benyamin.xyz"
-                }
-            ],
-            "description": "Easycode Git Auto Pull Hook",
-            "time": "2022-08-23T12:44:08+00:00"
-        },
-        {
             "name": "egulias/email-validator",
             "version": "2.1.25",
             "source": {

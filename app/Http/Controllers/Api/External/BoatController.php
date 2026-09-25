@@ -12,9 +12,8 @@ class BoatController extends Controller
     public function index(Request $request)
     {
         $boats = Boat::query()
-            ->with(['company:id,name', 'boatman'])
-            ->orderBy('name')
-            ->get();
+            ->orderBy('number')
+            ->get(['id', 'company_id', 'number']);
 
         return response()->json([
             'success' => true,

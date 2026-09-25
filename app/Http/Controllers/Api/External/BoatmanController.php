@@ -12,9 +12,8 @@ class BoatmanController extends Controller
     public function index(Request $request)
     {
         $boatmen = Boatman::query()
-            ->with('company:id,name')
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'boat_id', 'company_id', 'name', 'ic_no', 'type']);
 
         return response()->json([
             'success' => true,
