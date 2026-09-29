@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Spatie\QueryBuilder\Exceptions\InvalidQuery;
 
 class Handler extends ExceptionHandler
 {
@@ -32,6 +33,15 @@ class Handler extends ExceptionHandler
      */
     public function register()
     {
-        //
+        // Unsupported ?filter[...] / ?sort= on the external API: same envelope as its other errors.
+        $this->renderable(function (InvalidQuery $e, $request) {
+            if ($request->is('api/external/*')) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'data' => null,
+                ], $e->getStatusCode());
+            }
+        });
     }
 }

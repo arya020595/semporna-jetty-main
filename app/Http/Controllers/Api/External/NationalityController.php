@@ -6,23 +6,32 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\External\NationalityResource;
 use App\Models\RefNationality;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
 use Spatie\QueryBuilder\QueryBuilder;
 
 class NationalityController extends Controller
 {
     public function index(Request $request)
     {
-        $request->validate(['sort' => 'sometimes|required|string']);
+        $request->validate([
+            'filter' => 'sometimes|array',
+            'sort' => 'sometimes|required|string',
+        ]);
 
-        $nationalities = QueryBuilder::for(RefNationality::class, $request)
+        $items = QueryBuilder::for(RefNationality::class, $request)
+            ->allowedFilters([
+                AllowedFilter::exact('id'),
+                AllowedFilter::exact('code'),
+                AllowedFilter::partial('title'),
+            ])
             ->defaultSort('title')
-            ->allowedSorts('title')
+            ->allowedSorts('id', 'code', 'title')
             ->get(['id', 'code', 'title']);
 
         return response()->json([
             'success' => true,
             'message' => 'List Nationalities',
-            'data' => NationalityResource::collection($nationalities),
+            'data' => NationalityResource::collection($items),
         ]);
     }
 }
