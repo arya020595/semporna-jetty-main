@@ -12,6 +12,10 @@ info:
     instead).
   version: 1.0.0
 servers:
+  - url: /api/external
+    description: Same host as this page (used by "Try it out")
+  - url: http://217.217.252.45:8080/api/external
+    description: Staging
   - url: http://localhost:8000/api/external
     description: Local development (matches APP_URL in .env)
 
