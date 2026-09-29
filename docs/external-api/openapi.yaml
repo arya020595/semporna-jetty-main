@@ -19,20 +19,122 @@ security:
   - bearerAuth: []
 
 paths:
+  /guests:
+    get:
+      summary: List guests
+      operationId: listGuests
+      tags:
+        - Reference Data
+      description: >
+        Returns active guests ordered by ID. Only this list is paginated.
+        When filter[last_synced_at] (or its last_synced_at alias) is supplied, updated_at must be strictly greater
+        than that timestamp plus 15 minutes; exactly 15 minutes is excluded.
+        Omit it for an initial full sync. Keep the same timestamp on every page.
+        ISO 8601 timestamps with an explicit timezone are recommended;
+        timestamps without a timezone use the application's timezone.
+      parameters:
+        - in: query
+          name: sort
+          schema:
+            type: string
+            enum: [id, '-id']
+            default: id
+        - in: query
+          name: filter[last_synced_at]
+          description: Preferred Spatie filter; takes precedence over the top-level alias.
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: last_synced_at
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 500
+      responses:
+        '400':
+          description: Unsupported sort or Guest filter.
+        '200':
+          description: Paginated guest list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        ic_no:
+                          type: string
+                          nullable: true
+                        nationality_name:
+                          type: string
+                          nullable: true
+                        age:
+                          type: integer
+                        gender:
+                          type: string
+                          enum: [F, M]
+                  meta:
+                    type: object
+                    properties:
+                      current_page:
+                        type: integer
+                      per_page:
+                        type: integer
+                      total:
+                        type: integer
+                      last_page:
+                        type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '422':
+          description: Invalid timestamp, page, or limit
   /destinations:
     get:
+      parameters:
+        - in: query
+          name: sort
+          description: 'Optional ordering; defaults to title ascending.'
+          schema:
+            type: string
+            enum: ['title', '-title']
       summary: List destinations
       description: >
         Returns every active destination a guest can travel to, for
         populating a "Destination" dropdown. Server-side pre-filtered to
         actual tour/dive destinations only — departure/jetty points, which
         live in the same underlying table, are never returned here. No
-        pagination and no query parameters: the full active list is always
+        pagination and only the optional sort query parameter: the full active list is always
         returned, since this backs a static <select>, not a typeahead.
       operationId: listDestinations
       tags:
         - Reference Data
       responses:
+        '400':
+          description: Unsupported sort or Guest filter.
         '200':
           description: Destinations retrieved successfully.
           content:
@@ -63,15 +165,24 @@ paths:
 
   /activities:
     get:
+      parameters:
+        - in: query
+          name: sort
+          description: 'Optional ordering; defaults to title ascending.'
+          schema:
+            type: string
+            enum: ['title', '-title']
       summary: List activities
       description: >
         Returns every active activity a guest can take part in, for
-        populating an "Activity" dropdown. No pagination and no query
-        parameters — the full active list is always returned.
+        populating an "Activity" dropdown. No pagination and only the optional sort query
+        parameter — the full active list is always returned.
       operationId: listActivities
       tags:
         - Reference Data
       responses:
+        '400':
+          description: Unsupported sort or Guest filter.
         '200':
           description: Activities retrieved successfully.
           content:
@@ -102,15 +213,24 @@ paths:
 
   /nationalities:
     get:
+      parameters:
+        - in: query
+          name: sort
+          description: 'Optional ordering; defaults to title ascending.'
+          schema:
+            type: string
+            enum: ['title', '-title']
       summary: List nationalities
       description: >
         Returns every active nationality, for populating a "Nationality"
-        dropdown. No pagination and no query parameters — the full active
+        dropdown. No pagination and only the optional sort query parameter — the full active
         list is always returned.
       operationId: listNationalities
       tags:
         - Reference Data
       responses:
+        '400':
+          description: Unsupported sort or Guest filter.
         '200':
           description: Nationalities retrieved successfully.
           content:
@@ -141,6 +261,13 @@ paths:
 
   /boats:
     get:
+      parameters:
+        - in: query
+          name: sort
+          description: 'Optional ordering; defaults to number ascending.'
+          schema:
+            type: string
+            enum: ['number', '-number']
       summary: List boats
       description: >
         Returns every boat across all partner companies, each with its
@@ -152,13 +279,15 @@ paths:
         company-wide crew not tied to any boat, so they never appear here —
         see `GET /boatmen` for those. Not scoped by company/resort — the
         static bearer token isn't per-partner today, so every company's
-        boats are returned. No pagination and no query parameters: the full
+        boats are returned. No pagination and only the optional sort query parameter: the full
         list is always returned, since this backs a static <select>, not a
         typeahead.
       operationId: listBoats
       tags:
         - Reference Data
       responses:
+        '400':
+          description: Unsupported sort or Guest filter.
         '200':
           description: Boats retrieved successfully.
           content:
@@ -222,6 +351,13 @@ paths:
 
   /boatmen:
     get:
+      parameters:
+        - in: query
+          name: sort
+          description: 'Optional ordering; defaults to name ascending.'
+          schema:
+            type: string
+            enum: ['name', '-name']
       summary: List boatmen (all types, all companies)
       description: >
         Returns every crew record — all 5 types, across all partner
@@ -234,11 +370,13 @@ paths:
         included here (with their `boat_id` set) for completeness, but the
         Boat No. → Boatman/Assistant cascade should use the nested
         `boatman[]` already returned by `GET /boats` rather than
-        cross-referencing this list. No pagination and no query parameters.
+        cross-referencing this list. No pagination and only the optional sort query parameter.
       operationId: listBoatmen
       tags:
         - Reference Data
       responses:
+        '400':
+          description: Unsupported sort or Guest filter.
         '200':
           description: Boatmen retrieved successfully.
           content:

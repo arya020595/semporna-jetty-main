@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "6eb6a1ff04c88e6780d4e198db2cb96f",
+    "content-hash": "549f2e4a841ebe3d7d7b3ea6bd0e11d4",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -975,50 +975,6 @@
                 }
             ],
             "time": "2022-09-10T18:51:20+00:00"
-        },
-        {
-            "name": "easycode/autopull",
-            "version": "v1.0.4",
-            "source": {
-                "type": "git",
-                "url": "ssh://git@gitlab.com/easycode.id/framework/autodeploy.git",
-                "reference": "f856bd96d8cab04f2b2be45b9e07753a47c080b2"
-            },
-            "require": {
-                "illuminate/http": ">=5.8",
-                "illuminate/support": ">=5.8",
-                "php": ">=7.1.3"
-            },
-            "require-dev": {
-                "phpunit/phpunit": "^7.1"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "Easycode\\Autopull\\Providers\\AutopullProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "Easycode\\Autopull\\": "src"
-                },
-                "files": [
-                    "helpers.php"
-                ]
-            },
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Benyamin Limanto",
-                    "email": "me@benyamin.xyz"
-                }
-            ],
-            "description": "Easycode Git Auto Pull Hook",
-            "time": "2022-08-23T12:44:08+00:00"
         },
         {
             "name": "egulias/email-validator",
@@ -4201,6 +4157,76 @@
                 }
             ],
             "time": "2023-04-12T17:08:32+00:00"
+        },
+        {
+            "name": "spatie/laravel-query-builder",
+            "version": "3.6.3",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/spatie/laravel-query-builder.git",
+                "reference": "4510ac8a450656df45b6d1bcb222fe12e413ad56"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/spatie/laravel-query-builder/zipball/4510ac8a450656df45b6d1bcb222fe12e413ad56",
+                "reference": "4510ac8a450656df45b6d1bcb222fe12e413ad56",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^6.20.13|^7.30.4|^8.22.2",
+                "illuminate/http": "^6.20.13|^7.30.4|^8.22.2",
+                "illuminate/support": "^6.20.13|^7.30.4|^8.22.2",
+                "php": "^7.3|^8.0"
+            },
+            "require-dev": {
+                "ext-json": "*",
+                "laravel/legacy-factories": "^1.0.4",
+                "mockery/mockery": "^1.4",
+                "orchestra/testbench": "^4.9|^5.8|^6.3",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Spatie\\QueryBuilder\\QueryBuilderServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Spatie\\QueryBuilder\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Alex Vanderbist",
+                    "email": "alex@spatie.be",
+                    "homepage": "https://spatie.be",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Easily build Eloquent queries from API requests",
+            "homepage": "https://github.com/spatie/laravel-query-builder",
+            "keywords": [
+                "laravel-query-builder",
+                "spatie"
+            ],
+            "support": {
+                "issues": "https://github.com/spatie/laravel-query-builder/issues",
+                "source": "https://github.com/spatie/laravel-query-builder"
+            },
+            "funding": [
+                {
+                    "url": "https://spatie.be/open-source/support-us",
+                    "type": "custom"
+                }
+            ],
+            "time": "2022-08-30T06:53:23+00:00"
         },
         {
             "name": "swiftmailer/swiftmailer",
@@ -9349,12 +9375,12 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
         "php": "^7.3"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.6.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.9.0"
 }
