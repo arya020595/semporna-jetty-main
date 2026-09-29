@@ -30,7 +30,9 @@ searches for *each* piece (`filter[name]=Smith,Jones` = Smith **or** Jones).
 ## 1. External partner API — `/api/external/*`
 
 Auth: `Authorization: Bearer <EXTERNAL_API_TOKEN>`. Full contract:
-[`external-api/openapi.yaml`](external-api/openapi.yaml), live at `/docs/external-api`.
+[`external-api/openapi.yaml`](external-api/openapi.yaml), live docs page at `/docs/external-api` (staging: http://217.217.252.45:8080/docs/external-api).
+The endpoints below are relative to the API base URL `/api/external` — that base path is not a page
+itself (a browser shows 404); append an endpoint such as `/destinations`.
 
 | Endpoint                | Filters                                                                                                                | Sorts (default first)            |
 | ----------------------- | ---------------------------------------------------------------------------------------------------------------------- | -------------------------------- |

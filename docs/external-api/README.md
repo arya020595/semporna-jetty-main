@@ -4,9 +4,22 @@ Read-only endpoints for external partner systems (currently the Semporna Jetty R
 
 ## Browsing the docs
 
-With the app running, open **`http://localhost:8000/docs/external-api`** for a
-live, interactive Swagger UI (browse endpoints, expand schemas, "Try it out").
-See [`SWAGGER.md`](SWAGGER.md) for how that page is wired up.
+Two different URLs — the docs page and the API itself:
+
+| What                          | Staging                                           | Local                                    |
+| ----------------------------- | ------------------------------------------------- | ---------------------------------------- |
+| **Docs page** (Swagger UI)    | http://217.217.252.45:8080/docs/external-api      | http://localhost:8000/docs/external-api  |
+| Raw spec (`openapi.yaml`)     | http://217.217.252.45:8080/docs/external-api/openapi.yaml | http://localhost:8000/docs/external-api/openapi.yaml |
+| **API base URL** (not a page) | http://217.217.252.45:8080/api/external           | http://localhost:8000/api/external       |
+
+Open the **docs page** in a browser for a live, interactive Swagger UI (browse
+endpoints, expand schemas, "Try it out" — click **Authorize** first and paste the
+bearer token). See [`SWAGGER.md`](SWAGGER.md) for how that page is wired up.
+
+The **API base URL** is only a prefix: `/api/external` on its own has no route, so a
+browser shows **404 Not Found**. That is expected. Real endpoints are
+`<base URL>/destinations`, `/activities`, `/nationalities`, `/boats`, `/boatmen`,
+`/guests`, and they need `Authorization: Bearer <token>` (without it: 401).
 
 `openapi.yaml` can also be pasted into [editor.swagger.io](https://editor.swagger.io)
 (or any OpenAPI viewer) if you want to browse it without the app running.

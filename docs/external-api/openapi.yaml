@@ -10,14 +10,23 @@ info:
     authenticated with a static bearer token and are unrelated to this
     app's own mobile-app API (which uses Laravel Sanctum session tokens
     instead).
+
+
+    **Two different URLs — don't mix them up.**
+    This documentation page is `/docs/external-api` (staging:
+    http://217.217.252.45:8080/docs/external-api). The API itself lives under
+    the base path `/api/external` (staging:
+    http://217.217.252.45:8080/api/external); that base path is not a web page,
+    so opening it in a browser shows "404 Not Found". Call a real endpoint
+    instead, e.g. `/api/external/destinations`, with the bearer token.
   version: 1.0.0
 servers:
   - url: /api/external
-    description: Same host as this page (used by "Try it out")
+    description: API base path on the same host as this page (used by "Try it out")
   - url: http://217.217.252.45:8080/api/external
-    description: Staging
+    description: Staging API base URL (call endpoints under it, e.g. /destinations; docs page is http://217.217.252.45:8080/docs/external-api)
   - url: http://localhost:8000/api/external
-    description: Local development (matches APP_URL in .env)
+    description: Local development API base URL (matches APP_URL in .env)
 
 security:
   - bearerAuth: []

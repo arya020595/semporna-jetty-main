@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Semporna Jetty \u2014 External Partner API",
-		"description": "Read-only reference-data endpoints exposed to external partner systems (currently the Semporna Jetty Resort Manifest Form). See docs/external-api/openapi.yaml in the same repo for the full contract, and App\\Http\\Controllers\\Api\\External\\{Destination,Activity,Nationality,Boat,Boatman}Controller for the implementation. Every list endpoint supports ?filter[<field>]=<value> and ?sort=[-]<field> (Spatie Query Builder); see the \"Filter:\" requests below and docs/API_FILTERING_GUIDE.md.",
+		"description": "Read-only reference-data endpoints exposed to external partner systems (currently the Semporna Jetty Resort Manifest Form). Interactive docs page: /docs/external-api (staging: http://217.217.252.45:8080/docs/external-api); the API base path /api/external is not a page on its own. See docs/external-api/openapi.yaml in the same repo for the full contract, and App\\Http\\Controllers\\Api\\External\\{Destination,Activity,Nationality,Boat,Boatman}Controller for the implementation. Every list endpoint supports ?filter[<field>]=<value> and ?sort=[-]<field> (Spatie Query Builder); see the \"Filter:\" requests below and docs/API_FILTERING_GUIDE.md.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
