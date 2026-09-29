@@ -1,7 +1,7 @@
 {
 	"info": {
 		"name": "Semporna Jetty \u2014 External Partner API",
-		"description": "Read-only reference-data endpoints exposed to external partner systems (currently the Semporna Jetty Resort Manifest Form). See docs/external-api/openapi.yaml in the same repo for the full contract, and App\\Http\\Controllers\\Api\\External\\{Destination,Activity,Nationality,Boat,Boatman}Controller for the implementation.",
+		"description": "Read-only reference-data endpoints exposed to external partner systems (currently the Semporna Jetty Resort Manifest Form). See docs/external-api/openapi.yaml in the same repo for the full contract, and App\\Http\\Controllers\\Api\\External\\{Destination,Activity,Nationality,Boat,Boatman}Controller for the implementation. Every list endpoint supports ?filter[<field>]=<value> and ?sort=[-]<field> (Spatie Query Builder); see the \"Filter:\" requests below and docs/API_FILTERING_GUIDE.md.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"auth": {
@@ -30,7 +30,22 @@
 	"item": [
 		{
 			"name": "List Guests Since Sync",
-			"event": [{"listen":"test","script":{"type":"text/javascript","exec":["pm.test('Guest pagination contract', function () {","    pm.response.to.have.status(200);","    const body = pm.response.json();","    pm.expect(body.data).to.be.an('array');","    pm.expect(body.meta).to.have.all.keys('current_page', 'per_page', 'total', 'last_page');","});"]}}],
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Guest pagination contract', function () {",
+							"    pm.response.to.have.status(200);",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.data).to.be.an('array');",
+							"    pm.expect(body.meta).to.have.all.keys('current_page', 'per_page', 'total', 'last_page');",
+							"});"
+						]
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [
@@ -641,6 +656,127 @@
 					"body": "{\n  \"success\": false,\n  \"message\": \"Unauthorized.\",\n  \"data\": null\n}"
 				}
 			]
+		},
+		{
+			"name": "Filter: Destinations by title (partial, sorted)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Titles all contain 'mat'', function () {",
+							"    pm.response.to.have.status(200);",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.success).to.eql(true);",
+							"    body.data.forEach(d => pm.expect(d.title.toLowerCase()).to.include('mat'));",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": "{{base_url}}/api/external/destinations?filter[title]=mat&sort=-title",
+				"description": "Case-insensitive partial match on title. Other filters: filter[id], filter[code] (exact, comma-separated for several). Sort: id, code, title (prefix - for descending). Same filters on /activities and /nationalities."
+			}
+		},
+		{
+			"name": "Filter: Boats of one company",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Every boat belongs to company 1', function () {",
+							"    pm.response.to.have.status(200);",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.success).to.eql(true);",
+							"    body.data.forEach(b => pm.expect(b.company.id).to.eql(1));",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": "{{base_url}}/api/external/boats?filter[company_id]=1&filter[number]=SA&sort=number",
+				"description": "filter[company_id] and filter[id] are exact (comma-separated for several); filter[number] is a partial match. Sort: id, number."
+			}
+		},
+		{
+			"name": "Filter: Instructors, Divemasters and Guides",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Only types 3/4/5', function () {",
+							"    pm.response.to.have.status(200);",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.success).to.eql(true);",
+							"    body.data.forEach(b => pm.expect([3, 4, 5]).to.include(b.type));",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": "{{base_url}}/api/external/boatmen?filter[type]=3,4,5&sort=name",
+				"description": "filter[type] takes one or several crew types (1=Boatman, 2=Assistant, 3=Instructor, 4=Divemaster, 5=Guide). Other filters: filter[boat_id], filter[company_id], filter[id], filter[ic_no] (exact) and filter[name] (partial). Sort: id, name, type."
+			}
+		},
+		{
+			"name": "Filter: Guests by name and gender",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"pm.test('Paginated, females only', function () {",
+							"    pm.response.to.have.status(200);",
+							"    const body = pm.response.json();",
+							"    pm.expect(body.success).to.eql(true);",
+							"    pm.expect(body.meta).to.have.all.keys('current_page', 'per_page', 'total', 'last_page');",
+							"    body.data.forEach(g => pm.expect(g.gender).to.eql('F'));",
+							"});"
+						]
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": "{{base_url}}/api/external/guests?filter[name]=siti&filter[gender]=F&sort=-age&limit=50",
+				"description": "Combine with filter[last_synced_at] for an incremental sync. Filters: filter[id], filter[ic_no], filter[gender] (exact), filter[name], filter[nationality_name] (partial), filter[last_synced_at]. Sort: id, name, age."
+			}
 		}
 	]
 }

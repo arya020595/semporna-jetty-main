@@ -15,6 +15,7 @@ See [`SWAGGER.md`](SWAGGER.md) for how that page is wired up.
 
 - **`openapi.yaml`** — OpenAPI 3.0 contract: all endpoints, request/response shapes, auth scheme, and example payloads. This is the source of truth — the Swagger UI page above just renders this file.
 - **`postman_collection.json`** — Postman Collection v2.1 with every request pre-built, saved 200/401 example responses, and a couple of assertion tests per request so "Run Collection" gives a pass/fail result.
+- **[`../API_FILTERING_GUIDE.md`](../API_FILTERING_GUIDE.md)** — how to filter and sort every list endpoint (external API and the mobile `/api/activity`), with examples, error responses and a JS query-string helper — for the frontend.
 - **`SWAGGER.md`** — architecture notes for the `/docs/external-api` Swagger UI page.
 - **[`BOATS_FRONTEND_GUIDE.md`](BOATS_FRONTEND_GUIDE.md)** — practical frontend integration guide for `/boats` and `/boatmen`: response → UI field mapping and copy-pasteable implementations for the cascading Boat No. → Boatman/Assistant dropdowns and the boat-agnostic Instructor/Divemaster/Guide dropdowns, for whoever builds the Manifest Form's crew sections.
 
@@ -28,7 +29,7 @@ See [`SWAGGER.md`](SWAGGER.md) for how that page is wired up.
 
 ## Notes
 
-- All endpoints return the full active list every time — no pagination, no `?search=` query param, since they back static `<select>` dropdowns rather than a typeahead.
+- Every list endpoint accepts `?filter[<field>]=<value>` and `?sort=[-]<field>` (Spatie Query Builder) — allowed fields per endpoint are in `openapi.yaml`, with examples and error behaviour in [`../API_FILTERING_GUIDE.md`](../API_FILTERING_GUIDE.md). Without them, every endpoint returns the full active list. Only `/guests` is paginated.
 - `/destinations` is pre-filtered server-side to actual tour/dive destinations (`RefDestination::TYPE_DESTINATION`) — departure/jetty points, which live in the same underlying table, are never returned here.
 - `/nationalities` has no `type`-style filter — every non-deleted `ref_nationality` row is returned.
 - `/boats` returns every boat across **all** partner companies (not scoped by company — the shared bearer token has no per-partner identity today) with its **boat-assigned** crew nested inline (`boatman[]`, only ever types 1/2 — Boatman/Assistant). `/boatmen` returns every crew record of **all 5 types**, flat, each with its own `company` — this is the only source for Instructor/Divemaster/Guide (types 3-5), since those aren't tied to any boat (`boat_id: null`) and so never appear under `/boats`. See [`BOATS_FRONTEND_GUIDE.md`](BOATS_FRONTEND_GUIDE.md) for both dropdown implementations.

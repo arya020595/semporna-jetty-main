@@ -30,10 +30,15 @@ class GuestController extends Controller
                 AllowedFilter::callback('last_synced_at', function ($query) use ($lastSyncedAt) {
                     $query->where('updated_at', '>', Carbon::parse($lastSyncedAt)
                         ->setTimezone(config('app.timezone'))->addMinutes(15));
-                })->default($lastSyncedAt)
+                })->default($lastSyncedAt),
+                AllowedFilter::exact('id'),
+                AllowedFilter::partial('name'),
+                AllowedFilter::exact('ic_no'),
+                AllowedFilter::partial('nationality_name'),
+                AllowedFilter::exact('gender'),
             )
             ->defaultSort('id')
-            ->allowedSorts('id')
+            ->allowedSorts('id', 'name', 'age')
             ->paginate(
                 (int) ($validated['limit'] ?? 1000),
                 ['id', 'name', 'ic_no', 'nationality_name', 'age', 'gender'],
