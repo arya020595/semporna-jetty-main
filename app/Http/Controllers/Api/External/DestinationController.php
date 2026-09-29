@@ -6,14 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\External\DestinationResource;
 use App\Models\RefDestination;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class DestinationController extends Controller
 {
     public function index(Request $request)
     {
-        $destinations = RefDestination::query()
+        $request->validate(['sort' => 'sometimes|required|string']);
+
+        $destinations = QueryBuilder::for(RefDestination::class, $request)
             ->where('type', RefDestination::TYPE_DESTINATION)
-            ->orderBy('title')
+            ->defaultSort('title')
+            ->allowedSorts('title')
             ->get(['id', 'code', 'title']);
 
         return response()->json([

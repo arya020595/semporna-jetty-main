@@ -29,6 +29,21 @@
 	],
 	"item": [
 		{
+			"name": "List Guests Since Sync",
+			"event": [{"listen":"test","script":{"type":"text/javascript","exec":["pm.test('Guest pagination contract', function () {","    pm.response.to.have.status(200);","    const body = pm.response.json();","    pm.expect(body.data).to.be.an('array');","    pm.expect(body.meta).to.have.all.keys('current_page', 'per_page', 'total', 'last_page');","});"]}}],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": "{{base_url}}/api/external/guests?filter[last_synced_at]=2026-09-01T10:00:00Z&limit=500&page=1",
+				"description": "Supports sort=id or -id (default id). Use filter[last_synced_at]; the top-level last_synced_at remains a fallback alias. Returns flat guest records (id, name, ic_no, nationality_name, age, gender), ordered by ID. Only updated_at strictly greater than last_synced_at plus 15 minutes is included. Omit last_synced_at for a full sync; keep it unchanged across pages. Pagination metadata: current_page, per_page, total, last_page. Maximum limit: 500."
+			}
+		},
+		{
 			"name": "List Destinations",
 			"request": {
 				"method": "GET",
@@ -49,7 +64,7 @@
 						"destinations"
 					]
 				},
-				"description": "Returns every active destination (type = TYPE_DESTINATION only \u2014 departure/jetty points are excluded), for populating the Resort Manifest Form's \"To\" dropdown. No pagination, no query params."
+				"description": "Returns every active destination (type = TYPE_DESTINATION only \u2014 departure/jetty points are excluded), for populating the Resort Manifest Form's \"To\" dropdown. No pagination. Optional sort uses the existing ordering field; prefix with - for descending."
 			},
 			"event": [
 				{
@@ -529,7 +544,7 @@
 						"boatmen"
 					]
 				},
-				"description": "Returns every crew record (all 5 types, all companies) as a flat list, each carrying its own company. Powers the Manifest Form's Instructor/Divemaster/Guide dropdowns (types 3/4/5, boat_id always null for those) \u2014 filter client-side by type. Types 1/2 are included too but the Boat No. \u2192 Boatman/Assistant cascade should use GET /boats' nested boatman[] instead. No pagination, no query params."
+				"description": "Returns every crew record (all 5 types, all companies) as a flat list, each carrying its own company. Powers the Manifest Form's Instructor/Divemaster/Guide dropdowns (types 3/4/5, boat_id always null for those) \u2014 filter client-side by type. Types 1/2 are included too but the Boat No. \u2192 Boatman/Assistant cascade should use GET /boats' nested boatman[] instead. No pagination. Optional sort uses the existing ordering field; prefix with - for descending."
 			},
 			"event": [
 				{

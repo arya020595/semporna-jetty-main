@@ -5,7 +5,10 @@ namespace App\Http\Controllers\Api\External;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\External\GuestResource;
 use App\Models\Guest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Spatie\QueryBuilder\AllowedFilter;
+use Spatie\QueryBuilder\QueryBuilder;
 
 class GuestController extends Controller
 {
@@ -13,13 +16,26 @@ class GuestController extends Controller
     {
         $validated = $request->validate([
             'page' => 'sometimes|integer|min:1',
-            'limit' => 'sometimes|integer|min:1|max:500',
+            'limit' => 'sometimes|integer|min:1|max:2000',
+            'last_synced_at' => 'sometimes|required|date',
+            'filter' => 'sometimes|array',
+            'filter.last_synced_at' => 'sometimes|required|string|date',
+            'sort' => 'sometimes|required|string',
         ]);
 
-        $guests = Guest::query()
-            ->orderBy('id')
+        $lastSyncedAt = $validated['filter']['last_synced_at'] ?? $validated['last_synced_at'] ?? null;
+
+        $guests = QueryBuilder::for(Guest::class, $request)
+            ->allowedFilters(
+                AllowedFilter::callback('last_synced_at', function ($query) use ($lastSyncedAt) {
+                    $query->where('updated_at', '>', Carbon::parse($lastSyncedAt)
+                        ->setTimezone(config('app.timezone'))->addMinutes(15));
+                })->default($lastSyncedAt)
+            )
+            ->defaultSort('id')
+            ->allowedSorts('id')
             ->paginate(
-                (int) ($validated['limit'] ?? 500),
+                (int) ($validated['limit'] ?? 1000),
                 ['id', 'name', 'ic_no', 'nationality_name', 'age', 'gender'],
                 'page',
                 (int) ($validated['page'] ?? 1)
