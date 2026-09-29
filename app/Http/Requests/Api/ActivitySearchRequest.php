@@ -2,11 +2,7 @@
 
 namespace App\Http\Requests\Api;
 
-use App\Actions\API\GetManifestActivity;
-use App\Helpers\DatatablesHelper;
-use App\Models\Manifest;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class ActivitySearchRequest extends FormRequest
 {
@@ -27,15 +23,22 @@ class ActivitySearchRequest extends FormRequest
      */
     public function rules()
     {
-        $orderField = DatatablesHelper::getOrderAbleField((new GetManifestActivity())->getColumns());
-
         return [
-            'search_fields' => 'nullable|array',
-            'search_values' => 'nullable|array',
+            'filter' => 'nullable|array',
+            'filter.search' => 'nullable|string|max:100',
+            'filter.status' => ['nullable', 'regex:/^-?\d+(,-?\d+)*$/'],
+            'filter.payment_status' => ['nullable', 'regex:/^-?\d+(,-?\d+)*$/'],
+            'filter.departure_date' => 'nullable|date_format:Y-m-d',
+            'filter.departure_date_from' => 'nullable|date_format:Y-m-d',
+            'filter.departure_date_to' => 'nullable|date_format:Y-m-d',
+            'sort' => 'nullable|string',
             'page' => 'nullable|numeric',
             'per_page' => 'nullable|numeric',
-            'order_by' => ['nullable', Rule::in($orderField)],
-            'order_type' => 'nullable|in:asc,desc,ASC,DESC'
+
+            // Legacy search parameters, still sent by released versions of the mobile app
+            'search_fields' => 'nullable|array',
+            'search_values' => 'nullable|array',
+            'order_type' => 'nullable|in:asc,desc,ASC,DESC',
         ];
     }
 }
